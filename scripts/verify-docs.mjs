@@ -21,6 +21,25 @@ for (const match of readme.matchAll(/\]\(([^)]+)\)|(?:src|href)="([^"]+)"/g)) {
 }
 assert.deepEqual(missing, [], 'README contains missing local paths or anchors.')
 assert.ok(anchors.has('zh-cn') && anchors.has('english'), 'Both language anchors must exist.')
+const rootFiles = readdirSync(root)
+assert.ok(rootFiles.includes('Agent.md') && rootFiles.includes('AGENTS.md'), 'Keep the exact policy and standard entry filenames.')
+const entry = readFileSync(path.join(root, 'AGENTS.md'), 'utf8')
+assert.ok(entry.includes('[Agent.md](Agent.md)'), 'The standard entry must point to the full policy.')
+for (const name of ['Agent.md', 'AGENTS.md', 'docs/AI_LESSONS.md']) {
+  const text = readFileSync(path.join(root, name), 'utf8')
+  for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
+    const target = match[1]
+    if (!/^[a-z][a-z\d+.-]*:/i.test(target) && !target.startsWith('#')) {
+      assert.ok(existsSync(path.resolve(root, path.dirname(name), target.split('#')[0])), `${name} has a missing reference: ${target}`)
+    }
+  }
+}
+const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
+const lockfile = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'))
+assert.equal(manifest.license, 'MIT')
+assert.equal(lockfile.packages[''].license, 'MIT')
+const license = readFileSync(path.join(root, 'LICENSE'), 'utf8')
+assert.ok(license.startsWith('MIT License\n') && license.includes('Permission is hereby granted') && license.includes('THE SOFTWARE IS PROVIDED "AS IS"'), 'Keep the MIT grant and disclaimer intact.')
 const images = readdirSync(path.join(root, 'docs/screenshots')).filter(name => name.endsWith('.png')).sort()
 assert.equal(images.length, 9)
 for (const name of images) {
@@ -41,4 +60,4 @@ for (const name of files) {
 }
 assert.deepEqual(forbidden, [], 'Publication contains a cache, signing, environment or device artifact.')
 assert.deepEqual(suspected, [], 'Review potential credentials before publishing (file names only).')
-console.log(`Verified bilingual README links, 9 screenshots and ${files.size} publishable files; no blocked paths or common credential patterns.`)
+console.log(`Verified bilingual README and agent links, MIT metadata, 9 screenshots and ${files.size} publishable files; no blocked paths or common credential patterns.`)

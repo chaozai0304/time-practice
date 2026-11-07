@@ -169,7 +169,7 @@ npm run android:apk
 | `npm run lint` | 代码规范检查 |
 | `npm run test:e2e` | 桌面 / 手机 / 平板浏览器流程测试 |
 | `npm run docs:screenshots` | 隔离浏览器演示，重建 `docs/screenshots/` 图片；需要 Google Chrome |
-| `npm run docs:verify` | 只读检查 README 链接、语言锚点、截图和 Git 发布文件的常见敏感模式 |
+| `npm run docs:verify` | 只读检查 README/AI 规则链接、语言锚点、MIT 元数据、截图和 Git 发布文件的常见敏感模式 |
 | `npm run sync` | 构建并同步 Android/iOS 资源，不安装到设备 |
 | `npm run android:open` / `npm run ios:open` | 打开原生 IDE 工程 |
 | `npm run motion:studio` | Remotion 时间轴，默认端口 3001 |
@@ -196,7 +196,9 @@ npm run android:apk
 
 欢迎通过 [Issues](https://github.com/chaozai0304/time-practice/issues) 提交问题或通过 Pull Request 改进。请附应用版本、系统版本、复现步骤及**脱敏**截图/诊断；不要上传密码、密码哈希、密钥或孩子的真实题库和学习记录。提交前运行单测、Lint 和构建，涉及交互时补充浏览器测试。
 
-本应用主体**尚未声明开源许可证**，公开可见不等于授予任意使用、复制或分发许可；请先与维护者确认。第三方依赖分别遵循各自的许可证；附带 `ui-styling` 工具保留其 [Apache 2.0 许可证](.github/prompts/ui-styling/LICENSE.txt)。
+本应用主体采用 [MIT License](LICENSE)。第三方依赖和附带工具仍遵循各自许可证；`ui-styling` 保留其 [Apache 2.0 许可证](.github/prompts/ui-styling/LICENSE.txt)，Remotion 等依赖的使用条件不因本项目采用 MIT 而改变。
+
+**AI 开发要求**：开始任务前读取标准入口 [AGENTS.md](AGENTS.md) 和完整规范 [Agent.md](Agent.md)，查阅 [历史教训与主动复盘](docs/AI_LESSONS.md)。规则明确设备/委派授权、证据分级、测试、截图、产物与发布检查，并要求遇错主动总结、补防复发措施，不等维护者提醒。
 
 <a id="english"></a>
 ## English
@@ -284,4 +286,6 @@ Uninstalling or clearing app/browser data deletes local content. Export backups 
 
 Report bugs through [Issues](https://github.com/chaozai0304/time-practice/issues) with app/OS versions, reproduction steps and redacted screenshots/diagnostics. Do not submit PINs, PIN hashes, credentials or a child's real question library/learning records. Pull requests should include relevant tests and pass unit tests, lint and build.
 
-**License:** no open-source license has been declared for the main application yet. Public visibility does not grant unrestricted permission to use, copy or distribute it; contact the maintainer first. Third-party dependencies retain their respective licenses; the bundled `ui-styling` tooling retains its [Apache 2.0 license](.github/prompts/ui-styling/LICENSE.txt).
+**License:** the main application is licensed under the [MIT License](LICENSE). Third-party dependencies and bundled tools retain their respective terms, including the [Apache 2.0 license](.github/prompts/ui-styling/LICENSE.txt) for `ui-styling`. MIT licensing of this project does not change Remotion or other dependency licensing conditions.
+
+**AI development:** read [AGENTS.md](AGENTS.md), the full [Agent.md](Agent.md) policy and [historical lessons](docs/AI_LESSONS.md) before working. These cover authorization, evidence levels, testing, screenshots and release checks, and require agents to proactively document mistakes and add recurrence-prevention checks without waiting for a maintainer to ask.
