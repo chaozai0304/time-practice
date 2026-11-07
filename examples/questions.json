@@ -1,0 +1,6 @@
+[
+  { "grade": 3, "subject": "数学", "prompt": "24 × 3 = ？", "options": ["48", "72", "96", "64"], "answer": "72", "explanation": "把 24 相加三次，结果是 72。" },
+  { "grade": 3, "subject": "数学", "prompt": "一小时有多少分钟？", "options": [], "answer": "60", "explanation": "1 小时等于 60 分钟。" },
+  { "grade": 3, "subject": "语文", "prompt": "“温暖”的反义词是？", "options": ["寒冷", "明亮", "热情", "暖和"], "answer": "寒冷", "explanation": "温暖与寒冷表达相反的意思。" },
+  { "grade": 3, "subject": "英语", "prompt": "“苹果”的英文是？", "options": ["apple", "book", "cat", "sun"], "answer": "apple", "explanation": "apple 表示苹果。" }
+]

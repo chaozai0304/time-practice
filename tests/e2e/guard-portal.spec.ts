@@ -1,0 +1,63 @@
+import { expect, test } from '@playwright/test'
+
+test('安卓离线星门入口只显示动画并响应原生进度和暂停', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const external: string[] = []
+  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:4173') && !request.url().startsWith('data:')) external.push(request.url()) })
+  await page.goto('/guard-motion.html')
+  const portal = page.locator('.guard-portal')
+  await expect(portal).toHaveAttribute('data-mode', 'static')
+  await expect(portal.locator('.portal-fallback')).toBeVisible()
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('sprout:guard-motion', { detail: { progress: 0.5, paused: true } })))
+  await expect(page.getByText('已收集 50% 学习能量')).toHaveCount(1)
+  await expect(page.getByRole('textbox')).toHaveCount(0)
+  await expect(page.getByRole('button')).toHaveCount(0)
+  await expect(portal).toHaveAttribute('data-playing', 'false')
+  expect(external).toEqual([])
+})
+
+test('实际答题锁定页包含可降级的 Three.js 知识星门且保留家长出口', async ({ page }, info) => {
+  test.setTimeout(180_000)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/')
+  const setup = page.getByRole('dialog', { name: '先为成长，设一道保护' })
+  await setup.getByLabel('设置 6 位数字密码').fill('246810')
+  await setup.getByLabel('再输入一次').fill('246810')
+  await setup.getByRole('button', { name: '开启学伴时光' }).click()
+  await expect(setup).not.toBeVisible()
+  await page.getByRole('button', { name: '先练习一下' }).click()
+  const quiz = page.getByRole('dialog', { name: '答题时间' })
+  const portal = quiz.locator('.guard-portal')
+  const background = await portal.evaluate(node => {
+    const box = node.getBoundingClientRect()
+    return { position: getComputedStyle(node).position, x: box.x, y: box.y, width: box.width, height: box.height, viewportWidth: innerWidth, viewportHeight: innerHeight }
+  })
+  expect(background.position).toBe('fixed')
+  expect(Math.abs(background.x)).toBeLessThan(2)
+  expect(Math.abs(background.y)).toBeLessThan(2)
+  expect(background.width).toBeGreaterThanOrEqual(background.viewportWidth - 2)
+  expect(background.height).toBeGreaterThanOrEqual(background.viewportHeight - 2)
+  await expect(quiz.locator('.question-card')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(quiz.getByRole('button', { name: '家长退出' })).toBeVisible()
+  await expect(portal).toHaveAttribute('data-mode', /^(3d|static)$/, { timeout: 30_000 })
+  if (await portal.getAttribute('data-mode') === '3d') {
+    await expect(portal.locator('canvas')).toBeVisible()
+    // Require actual rendered geometry, not only a canvas/capability probe.
+    const frame = await portal.locator('canvas').screenshot()
+    expect(frame.byteLength).toBeGreaterThan(5000)
+    const pause = quiz.getByRole('button', { name: '暂停星门动画' })
+    expect(await pause.evaluate(node => {
+      const rect = node.getBoundingClientRect()
+      return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2))
+    })).toBe(true)
+    await pause.click()
+    await expect(portal).toHaveAttribute('data-playing', 'false')
+    await expect(quiz.getByRole('button', { name: '播放星门动画' })).toHaveAttribute('aria-pressed', 'true')
+  } else await expect(portal.locator('.portal-fallback')).toBeVisible()
+  await quiz.getByRole('button', { name: '家长退出' }).click()
+  await expect(page.getByRole('dialog', { name: '家长验证' })).toBeVisible()
+  await expect(portal).toHaveAttribute('data-playing', 'false')
+  await page.getByRole('button', { name: '关闭弹窗' }).click()
+  await quiz.screenshot({ path: `test-results/knowledge-gate-${info.project.name}.png` })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})

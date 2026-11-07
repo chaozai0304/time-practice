@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720">
+  <rect width="1080" height="720" rx="24" fill="#f4f6fd"/>
+  <g font-family="PingFang SC,Microsoft YaHei,system-ui,sans-serif">
+    <text x="52" y="66" fill="#25345c" font-size="29" font-weight="700">把学伴时光装到 iPhone：4 步配置示意</text>
+    <text x="52" y="103" fill="#60708e" font-size="16">这是一张流程图，不是 Xcode 实际截图。密码与验证码只在 Xcode / 系统窗口输入。</text>
+    <g transform="translate(52 142)"><rect width="976" height="114" rx="20" fill="white" stroke="#dfe4f4"/><circle cx="45" cy="43" r="23" fill="#ece7ff"/><text x="38" y="51" fill="#7561bd" font-size="23" font-weight="700">1</text><text x="85" y="40" fill="#2b3b62" font-size="21" font-weight="600">补齐 iOS 平台支持</text><text x="85" y="76" fill="#55647f" font-size="17">Xcode → Settings → Components → Platform Support → iOS → Get / Install</text></g>
+    <path d="M540 261v20m-7-7 7 7 7-7" fill="none" stroke="#aaa0c8" stroke-width="3"/>
+    <g transform="translate(52 286)"><rect width="976" height="114" rx="20" fill="white" stroke="#dfe4f4"/><circle cx="45" cy="43" r="23" fill="#e3f5ef"/><text x="38" y="51" fill="#39836d" font-size="23" font-weight="700">2</text><text x="85" y="40" fill="#2b3b62" font-size="21" font-weight="600">登录自己的 Apple ID</text><text x="85" y="76" fill="#55647f" font-size="17">Xcode → Settings → Apple Accounts / Accounts → + → 完成官方登录</text></g>
+    <path d="M540 405v20m-7-7 7 7 7-7" fill="none" stroke="#aaa0c8" stroke-width="3"/>
+    <g transform="translate(52 430)"><rect width="976" height="114" rx="20" fill="white" stroke="#dfe4f4"/><circle cx="45" cy="43" r="23" fill="#fff1d2"/><text x="38" y="51" fill="#9d792e" font-size="23" font-weight="700">3</text><text x="85" y="40" fill="#2b3b62" font-size="21" font-weight="600">选择 Team，自动签名</text><text x="85" y="76" fill="#55647f" font-size="17">App 工程 → TARGETS / App → Signing &amp; Capabilities → 自动管理签名 → Team</text></g>
+    <path d="M540 549v20m-7-7 7 7 7-7" fill="none" stroke="#aaa0c8" stroke-width="3"/>
+    <g transform="translate(52 574)"><rect width="976" height="104" rx="20" fill="#ece8fb" stroke="#dcd2f4"/><circle cx="45" cy="43" r="23" fill="white"/><text x="38" y="51" fill="#7561bd" font-size="23" font-weight="700">4</text><text x="85" y="40" fill="#2b3b62" font-size="21" font-weight="600">先直接安装自己的真机</text><text x="85" y="75" fill="#55647f" font-size="17">连接 iPhone / iPad → 信任电脑 → 按提示开启开发者模式 → 选设备 → Run ▶</text></g>
+  </g>
+</svg>
