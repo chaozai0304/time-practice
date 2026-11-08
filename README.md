@@ -33,13 +33,18 @@ A local-first learning companion: parents manage questions and learning interval
 
 学伴时光希望帮助家庭建立“玩耍—学习—继续探索”的节奏。所有题目、设置和记录保存在本机，不需要账号、服务器或 API Key。**文档提供中英文，当前应用界面主要为中文。**
 
-- **本地题库**：1–6 年级，数学、语文、英语；内置 120 道原创演示题，并非完整教材。支持手动增改删、搜索、CSV/JSON 导入、预览、校验、去重与备份。
+- **本地题库**：小学、初中、高中共 12 年级，按学段显示科目；内置 1303 道原创基础练习，支持选择/填空/判断、手动增改删、CSV/JSON 导入、预览、校验、去重与备份。不是北京完整教材题库。
+- **课程归属与批量管理**：新增、导入和在线编辑均支持年级、科目、上下册、第几课及课题；按这些字段筛选，支持跨页全选、逐题勾选、批量启用/停用/删除。删除有数量确认，保留学习记录。
+- **智能复习**：新题与高错率题加权优先，近期题降权，按轮无重复排序。
+- **英语双向词汇**：三年级 254 个分类基础词/短语，生成 508 道“看英语选中文”“看中文写英语”题；可导入实际教材词表并导出基础词库。教材版本未确认，**不能声明涵盖北京某版上下册全部单词**。
+- **英语听写**：拼写题和单词游戏可点“听英文（听写）/重听”，使用系统本地英语语音；不显示或自动填答案、不计分。缺少本地语音时明确提示，不自动下载、联网合成或申请麦克风。
+- **单词星际跑酷**：正确拼写发射能量清理陨石，累计航程和连胜；答错重试、提示、暂停，10 词后休息，真实作答计入学习足迹。守护运行时不能借游戏解除锁定。
 - **学习规则**：间隔 1–120 分钟，每轮累计答对 1–20 道；答错留在当前题，应用内没有跳过或自动超时放行按钮。
-- **独立练习**：先体验答题，不启动跨应用守护。支持选择题、填空题，随机题序和选项；规范化全角数字、空格与英文大小写。
+- **独立练习**：先体验答题，不启动跨应用守护。支持选择题、填空题、判断题，加权题序与随机选择题选项；判断题固定正确/错误，规范化全角数字、空格与英文大小写。
 - **家长验证**：自行设置 6 位密码，无默认密码；随机盐和 PBKDF2-HMAC-SHA256（120,000 次），不保存明文。连续输错 5 次暂停验证 30 秒。
 - **成长足迹**：真实答题统计、连续学习天数、每周图表和最近 10,000 次答题记录；支持导出。
 - **自适应视觉**：软 3D 学习小岛、全屏宇宙答题背景、透明题目层、清晰按钮和过关纸屑。Remotion + Three.js 动画支持暂停、减少动态效果、后台停播及静态降级。
-- **Android 1.2 兼容诊断**：原生计时服务、答题浮层、普通原生答题入口、页面内家长数字键盘、后台权限提示与不含密码/题目的运行诊断。
+- **Android 1.4**：原生支持课程标注和离线英语听写，保留三题型、停用过滤、历史加权、计时浮层、家长数字键盘与诊断。不是系统级防退出版本。
 
 ### 平台支持与限制
 
@@ -92,7 +97,13 @@ npm run dev
 
 <img src="docs/screenshots/05-import.png" width="560" alt="导入预览：查看校验后的题目，再确认保存到本机" />
 
-模板：[CSV](examples/questions.csv) · [JSON](examples/questions.json)。导出文件包含正确答案，请由家长保管。
+模板：[三题型 CSV](examples/questions.csv) · [JSON](examples/questions.json) · [英语词表 CSV](examples/vocabulary.csv) · [词表 JSON](examples/vocabulary.json)。题型、学段、开关和教材校对详见 [学习内容说明](docs/LEARNING_CONTENT.md)。导出文件包含正确答案，请由家长保管。
+
+使用年级/科目/题型/单元/册次/课次/启用状态筛选；关键词也可检索课题与来源。可操作全部筛选结果，或勾选任意题批量启停/删除，分页每页 50 道。“全选筛选结果”包含其他页；批量删除需验证密码、核对清单并输入数量确认，取消不删除。编辑可改变内容和完整课程归属，保留原 ID/历史。游戏使用当前年级启用英语拼写题；练习/守护还受所选科目限制。
+
+<img src="docs/screenshots/11-course-editor.png" width="560" alt="真实网页课程编辑器：年级、科目、上下册、第几课、课题、内容及保存按钮" />
+
+图片中课次来自隔离导入模板，只演示格式，不代表北京教材归属已校对。英语拼写题可点“听英文（听写）”，听后填写答案；缺本地英语语音时提示，仍可看中文作答。
 
 #### 4. 练习或开启守护
 
@@ -100,7 +111,7 @@ npm run dev
 - **“开启学习守护”**：按规则开始计时。Android 需家长授权浮层、通知并允许后台活动；Web/iOS 只在应用内答题。
 - 首次测试建议设为 **1 分钟**，家长陪同检查。Android 切换其他 App 后应自动出现题目，**返回学伴或手动点通知后才出现，不算后台验收通过**。
 
-到期或练习时，选择一个选项，或在填空框填写答案，点击“确认答案”。答错继续当前题；累计答对目标题数后，练习结束，普通守护开始下一轮。宇宙背景可暂停，不影响答题。
+到期或练习时，选择一个选项、判断正确/错误，或在填空框填写答案，点击“确认答案”。答错继续当前题；累计答对目标题数后，练习结束，普通守护按最新记录重排下一轮。宇宙背景可暂停，不影响答题。
 
 ![答题界面：题目、选项、进度、确认答案与家长退出](docs/screenshots/06-quiz.png)
 
@@ -124,18 +135,29 @@ npm run dev
 
 <img src="docs/screenshots/09-mobile.png" width="300" alt="手机宽度浏览器预览：学习首页与底部导航" />
 
+#### 单词游戏
+
+首页点击“进入单词星际跑酷”：看中文 → 输入英文 → 点击“发射单词能量” → 正确时清障并增加航程。答错不发射，继续当前词；“拼写提示”只给线索。每轮正确 10 词后提醒休息；作答自动记入学习足迹。无启用英语拼写题时须先由家长添加或导入词表。
+
+![单词游戏：中文提示、英文输入、航程、暂停和能量发射](docs/screenshots/10-game.png)
+
 ### 题库文件格式
 
 | 字段 | 要求 |
 | --- | --- |
-| `grade` | 整数 1–6 |
-| `subject` | `数学` / `语文` / `英语` |
+| `grade` | 1–12，或年级标签；7–9=初中、10–12=高中 |
+| `subject` | 当前学段的精确科目名称，详见 [学习内容](docs/LEARNING_CONTENT.md) |
+| `type` | `choice` / `fill` / `boolean`（或中文题型）；缺省兼容旧选项推断 |
 | `prompt` | 题干，1–1000 字符 |
-| `options` | JSON 字符串数组；CSV 用 `\|` 分隔；留空或 `[]` 表示填空题 |
-| `answer` | 1–160 字符；选择题填选项的完整文字，**不是 A/B/C/D** |
+| `options` | JSON 字符串数组；CSV 用 `\|` 分隔；填空/判断可留空，判断自动固定选项 |
+| `answer` | 选择题填完整选项文字，**不是 A/B/C/D**；填空填准确答案；判断填正确/错误或 true/false |
 | `explanation` | 可选解析，家长在题库中查看；答错时不直接展示 |
+| `enabled` | 可选 true/false，省略默认启用；停用题不会出现 |
+| `unit` / `source` / `word` | 可选单元、教材来源和对应英语单词 |
+| `semester` | `upper`/上册、`lower`/下册、`unspecified`/未标注；旧文件缺省未标注 |
+| `lesson` / `lessonTitle` | 第几课（整数 1–300 或留空）、可选课题名称；模板课号只是示例，不代表官方教材进度 |
 
-单文件最多 **5 MB**，每批 **1–2000 道**，本地最多 **5000 道**。一条无效会拒绝整批并提示题号；按年级、学科、题干、选项和答案去重。填空按规范化后的文字精确匹配，不支持多个等价答案或复杂表达式求值。当前不支持照片 OCR、PDF/Word 自动识题。
+单文件最多 **5 MB**，每批 **1–2000 道**，本地最多 **5000 道**。一条无效会拒绝整批并提示题号；按年级、学科、题型、题干、选项和答案去重。独立词表每批 1–1000 词，每词生成两题。填空按规范化后的文字精确匹配，不支持多个等价答案或复杂表达式求值。当前不支持照片 OCR、PDF/Word 自动识题。升级只追加一次基础题，不覆盖原 ID、密码、历史或计时进度；家长之后删除的新题不会反复补回。
 
 ### 构建安装包
 
@@ -148,6 +170,14 @@ npm run android:apk
 ```
 
 脚本先构建并同步资源，再运行原生单测与 `assembleDebug`。成功产物：`android/app/build/outputs/apk/debug/app-debug.apk`。调试包可测试安装，不是商店正式发布包。更新同签名版本建议**覆盖安装，不要先卸载**。
+
+**已有最新包时手动覆盖更新**：不必为安装再次跑全量测试。平板允许该电脑的 USB 调试后，从项目根目录由你自行运行：
+
+```bash
+"$HOME/Library/Android/sdk/platform-tools/adb" install -r artifacts/android/sprout-android-1.4-debug.apk
+```
+
+`-r` 表示覆盖安装、通常保留数据。先由家长停止守护并备份，不卸载/清数据；多设备用 `-s <设备序列号>` 指定目标。若报签名不一致或降级，先核对包，不用卸载/强制降级绕过。更新后确认版本与配置，再恢复守护。本段只是用户手动步骤，不授权 AI 自动枚举、安装或设置设备。
 
 仓库不提交 APK、IPA、构建缓存或签名材料。也可在 [GitHub Actions](https://github.com/chaozai0304/time-practice/actions) 的 **Android 构建成功后**下载 `sprout-android-debug-apk` 产物；这里不承诺工作流已成功或存在已发布安装包。
 
@@ -168,6 +198,7 @@ npm run android:apk
 | `npm test` | 状态机、导入、存储和密码单测 |
 | `npm run lint` | 代码规范检查 |
 | `npm run test:e2e` | 桌面 / 手机 / 平板浏览器流程测试 |
+| `npm run test:e2e:profile` | 本机隔离浏览器逐步计时：启动、页面、PBKDF2、交互与截图，不访问设备 |
 | `npm run docs:screenshots` | 隔离浏览器演示，重建 `docs/screenshots/` 图片；需要 Google Chrome |
 | `npm run docs:verify` | 只读检查 README/AI 规则链接、语言锚点、MIT 元数据、截图和 Git 发布文件的常见敏感模式 |
 | `npm run sync` | 构建并同步 Android/iOS 资源，不安装到设备 |
@@ -177,12 +208,15 @@ npm run android:apk
 
 浏览器测试需 Google Chrome，使用生产预览并串行覆盖 `1440 × 1000`、`390 × 844`、`1024 × 768`。Apple Silicon 可通过 `scripts/chrome-arm64.sh` 使用原生 ARM Chrome；复制源码丢失权限时运行 `chmod +x scripts/chrome-arm64.sh`。截图脚本使用电脑本地端口 4175，结束后关闭预览，不使用 ADB 或真实设备数据。
 
+ARM 硬件检测统一使用 `scripts/browser-platform.mjs` 的 `sysctl hw.optional.arm64`，避免 x64 Node/Rosetta 内 `uname` 的进程架构误判。本机保持单 worker，54项全量从约33.7分钟降至1.5分钟，不保证所有电脑相同耗时。开发时可按 `--project=tablet` 和 `--grep` 选择相关用例；交付仍跑全量，不增加超时/强制点击/删断言掩盖失败。计时入口在本地4177运行两轮隔离流程并清理服务。
+
 不要重复运行 `cap add`，否则可能覆盖自定义原生代码。应用无需 API Key 或运行时环境变量，不需要 `.env`。
 
 **代码导航**：`src/lib/` 为题库、会话、密码和存储逻辑；`src/components/` 为交互界面；`src/motion/` 为动画；`android/app/src/main/java/com/sprout/timepractice/` 为原生服务、答题页面、桥接与密码验证；`tests/` 为网页测试。
 
 ### 数据安全与常见问题
 
+- **重新安装影响配置吗？** 同包名、同签名的新版覆盖更新通常保留题库、密码、记录和学习规则；本版继续使用原存储键，不重置旧配置。先卸载、清除应用数据或浏览器存储会删除这些内容。建议家长先导出题库与记录；不同签名通常不能覆盖，不能为绕过签名问题要求卸载。更新会终止旧进程，之后检查守护状态/系统权限，必要时由家长恢复服务；保留数据不等于服务一定连续运行。
 - **离线与隐私**：题库、昵称、答题记录、密码派生值仅在本机；无账号、服务器、广告、埋点或外部字体，不统计其他 App 内容或使用记录。Android 关闭自动备份；iOS 数据可能随用户设备备份保存。
 - **忘记密码怎么办？** 没有云端找回或后门。卸载、清除数据或浏览器存储会删除本地内容，建议定期导出题库和记录，不能靠反复重装修复系统强停。
 - **后台不弹题怎么办？** 检查后台活动、电池限制、通知和浮层权限，并导出运行诊断；窗口挂载并不证明系统让它可见。荣耀上滑清理已出现系统级强停，普通 APK 无法保证恢复或防退出。
@@ -198,7 +232,7 @@ npm run android:apk
 
 本应用主体采用 [MIT License](LICENSE)。第三方依赖和附带工具仍遵循各自许可证；`ui-styling` 保留其 [Apache 2.0 许可证](.github/prompts/ui-styling/LICENSE.txt)，Remotion 等依赖的使用条件不因本项目采用 MIT 而改变。
 
-**AI 开发要求**：开始任务前读取标准入口 [AGENTS.md](AGENTS.md) 和完整规范 [Agent.md](Agent.md)，查阅 [历史教训与主动复盘](docs/AI_LESSONS.md)。规则明确设备/委派授权、证据分级、测试、截图、产物与发布检查，并要求遇错主动总结、补防复发措施，不等维护者提醒。
+**AI 开发要求**：完整规则只保存在 [AGENTS.md](AGENTS.md)，[CLAUDE.md](CLAUDE.md) 通过原生导入引用它，不复制正文；开始任务前实际读取并查阅 [历史教训](docs/AI_LESSONS.md)。规则保留设备/委派授权、证据分级、数据保护、测试、截图、产物与发布检查，以及遇错主动复盘。
 
 <a id="english"></a>
 ## English
@@ -211,13 +245,18 @@ No account, backend or API key is required at runtime. **The documentation is bi
 
 ### Features and platform support
 
-- Grades 1–6; mathematics, Chinese and English; 120 original demonstration questions, not a complete curriculum.
+- Grades 1–12 (primary/junior/senior), stage-specific subjects and 1303 original foundation questions—not a verified complete Beijing curriculum.
+- Multiple-choice, text-answer and true/false questions; parent-controlled per-question/bulk enable switches, subject/type/unit filters, new/error weighting and recent-question downweighting.
+- Course metadata includes upper/lower book, lesson number and lesson title, editable alongside grade/subject/content. Filter, select across pages and bulk enable/disable/delete with PIN verification and count confirmation; deletion retains learning history.
+- English spelling and Word Runner offer replayable dictation with local system English voices only. No automatic answer filling, scoring, microphone, voice download or remote synthesis; missing voices degrade to text practice.
+- 254 grade-three foundation words/phrases produce 508 English-to-Chinese choice and Chinese-to-English spelling questions. Import/export vocabulary by unit; the exact textbook and full two-semester vocabulary coverage remain unverified.
+- Word Runner: correct spelling launches cartoon energy and clears space obstacles; wrong answers retry, real attempts are recorded, hints/pause are available, and ten correct words prompt a rest. The game does not bypass guarding.
 - Configurable 1–120 minute intervals and 1–20 correct answers per round. Incorrect answers stay on the current question; no in-app skip or timeout bypass.
-- Separate practice mode, multiple-choice and text-answer questions, shuffled questions/options and normalized answer comparison.
+- Separate practice mode, three question types, weighted question ordering, shuffled choice options and normalized answer comparison.
 - Local question editing, CSV/JSON import with validation, preview and deduplication, and question/record exports.
 - Parent-created six-digit PIN, salted PBKDF2-HMAC-SHA256 with 120,000 iterations, and a 30-second verification cooldown after five failures. No default PIN or cloud recovery.
 - Responsive desktop/tablet/phone layouts, learning statistics, a 3D learning island and full-screen universe quiz background, animation pause and reduced-motion/static fallbacks.
-- Android 1.2 native timer, application overlay, ordinary quiz Activity, inline parent keypad and diagnostics that exclude PINs, questions and answers.
+- Android 1.4 adds course annotations and offline English dictation, retaining types, filtering, weighting, native guarding, keypad and diagnostics. Not system-level force-stop protection.
 
 | Platform | Supported | Important limitation |
 | --- | --- | --- |
@@ -246,6 +285,8 @@ All screenshots are **real browser captures with isolated demonstration data**, 
 | 7. Parent exit | Select “家长停止守护” on Home or “家长退出” in the quiz. A correct PIN stops guarding; cancelling verification does not. | [Web parent verification](docs/screenshots/07-parent.png) |
 | 8. Review and back up | Open “学习足迹” and export records after PIN verification. Export the question library separately from “我的题库”. | [Learning records](docs/screenshots/08-records.png) |
 | 9. Use a narrow screen | The layout adapts and offers bottom navigation. This capture uses a 390 × 844 browser viewport. | [Mobile layout](docs/screenshots/09-mobile.png) |
+| 10. Play Word Runner | Enter “单词星际跑酷” from Home, spell the shown Chinese word, then launch energy. Correct answers clear obstacles; pause, hints and a ten-word rest prompt are available. | [Word game](docs/screenshots/10-game.png) |
+| 11. Edit course metadata | Change grade, subject, upper/lower book, lesson/title and content; save preserves the ID/history. The pictured lesson is illustrative fixture data, not a verified textbook mapping. | [Course editor](docs/screenshots/11-course-editor.png) |
 
 The parent-verification image shows the **web dialog**. Android 1.2 instead uses a separate native Activity with an inline numeric keypad; that native screen is not pictured. The records capture contains one attempt genuinely made during the demonstration.
 
@@ -253,26 +294,35 @@ For a first guard test, use a one-minute interval with a parent present. Android
 
 ### Question file format
 
-Download [CSV](examples/questions.csv) or [JSON](examples/questions.json). JSON uses an array of question objects; CSV uses a header row.
+Download [three-type CSV](examples/questions.csv) or [JSON](examples/questions.json), or the separate [vocabulary CSV](examples/vocabulary.csv)/[JSON](examples/vocabulary.json). See [content scope and game guide](docs/LEARNING_CONTENT.md). JSON uses an array of objects; CSV uses a header row.
 
 | Field | Requirement |
 | --- | --- |
-| `grade` | Integer 1–6 |
-| `subject` | One of the exact values `数学`, `语文`, `英语` |
+| `grade` | Integer 1–12 or Chinese grade label; 7–9 junior, 10–12 senior |
+| `subject` | Exact stage-specific subject value, as listed in parent settings |
+| `type` | `choice`, `fill`, `boolean`; omitted types retain legacy inference |
 | `prompt` | Question text, 1–1000 characters |
-| `options` | JSON string array, or CSV options separated by `\|`; empty/`[]` means a text-answer question |
-| `answer` | 1–160 characters; for multiple choice, use the **full option text**, not A/B/C/D |
+| `options` | JSON string array or CSV `\|` separated options; empty for fill/boolean; boolean options normalize automatically |
+| `answer` | Full choice option, exact text answer, or 正确/错误 (true/false aliases supported) |
 | `explanation` | Optional explanation for parents; not directly revealed after a wrong answer |
+| `enabled` | Optional true/false, default true; disabled questions do not enter any pool |
+| `unit` / `source` / `word` | Optional unit, textbook/source annotation and corresponding English word |
+| `semester` | `upper`/上册, `lower`/下册, `unspecified`/未标注; legacy entries remain unspecified |
+| `lesson` / `lessonTitle` | Lesson number 1–300 or empty, optional title; template lesson assignments are illustrative, not curriculum verification |
 
-Limits: 5 MB per file, 1–2000 questions per import, 5000 stored questions. One invalid question rejects the batch with an error. Text answers use normalized exact matching; OCR, PDF/Word extraction, alternative equivalent answers and complex expression evaluation are not supported.
+Limits: 5 MB per file, 1–2000 questions or 1–1000 vocabulary entries per import, 5000 stored questions. One invalid item rejects the batch. Text answers use normalized exact matching; OCR, PDF/Word extraction, equivalent alternatives and expression evaluation are not supported. The one-time upgrade appends foundation content without replacing existing question IDs, PINs, attempts or session progress. Subsequent parent deletions are retained.
 
 ### Build, test and screenshots
 
 Use the command reference above for all scripts. Typical checks are `npm test`, `npm run lint`, `npm run build` and `npm run test:e2e`. Browser tests require Google Chrome and cover desktop, phone and tablet viewports sequentially. Apple Silicon uses the existing ARM Chrome wrapper when available.
 
+`npm run test:e2e:profile` measures an isolated browser on local port 4177. Hardware ARM detection uses `sysctl hw.optional.arm64`, not `uname` inside x64/Rosetta Node. On this Mac, the unchanged 54-test, single-worker suite improved from about 33.7 minutes to 1.5 minutes; timings are machine-specific and assertions/security settings were not weakened.
+
 Run `npm run docs:screenshots` to regenerate the walkthrough in an isolated local browser. It uses port 4175, closes its preview on completion, never accesses a tablet and never uses real user data. Do not repeat `cap add`: the Android/iOS directories already contain custom native code. No runtime `.env` file is required.
 
 **Android:** prepare Java 21, Android SDK Platform 36 and matching Build Tools, accept SDK licenses yourself and configure `ANDROID_HOME` or an ignored `android/local.properties`. Run `npm run android:apk`; the debug APK is produced at `android/app/build/outputs/apk/debug/app-debug.apk`. Same-signed updates should be installed over the old version, without uninstalling first. Release distribution requires your own signing key, device validation and applicable store approval.
+
+If the current local APK already exists, no full test/build is needed just to install. With USB debugging authorized, run the manual `adb install -r` command above from the repository root; use `-s` for multiple devices. Back up first, do not uninstall/clear data or force past signing/downgrade errors. This guide does not authorize an agent to access a device.
 
 **iOS/iPadOS:** prepare macOS, Xcode 26+, iOS platform components and your signing team. Run `npm run sync` and `npm run ios:open`, then configure signing in Xcode and use Run or Archive / Distribute. `ios:check` is unsigned compilation; `ios:archive` attempts a signing-ready archive. Neither is an installable IPA. See [build status](docs/DELIVERY.md), [Xcode setup](docs/IOS_SETUP.md) and [cross-platform limitations](docs/CROSS_PLATFORM.md).
 
@@ -284,8 +334,10 @@ Questions, nicknames, attempts and derived PIN values stay on the device. There 
 
 Uninstalling or clearing app/browser data deletes local content. Export backups regularly. Reinstalling cannot fix an OS force-stop or automatically grant Device Owner privileges. Native/JVM and browser tests do not validate OEM background policies, real keyboards or device window composition. Emergency and system-safety capabilities remain available.
 
+Same-package, same-signed in-place updates normally retain settings, PINs, questions and attempts; this release preserves the storage key and IDs. Uninstalling first or clearing data removes them. Back up questions/records before updating. An update may terminate the old process, so parents should check guarding and system permissions afterwards; data preservation is not continuous-service assurance.
+
 Report bugs through [Issues](https://github.com/chaozai0304/time-practice/issues) with app/OS versions, reproduction steps and redacted screenshots/diagnostics. Do not submit PINs, PIN hashes, credentials or a child's real question library/learning records. Pull requests should include relevant tests and pass unit tests, lint and build.
 
 **License:** the main application is licensed under the [MIT License](LICENSE). Third-party dependencies and bundled tools retain their respective terms, including the [Apache 2.0 license](.github/prompts/ui-styling/LICENSE.txt) for `ui-styling`. MIT licensing of this project does not change Remotion or other dependency licensing conditions.
 
-**AI development:** read [AGENTS.md](AGENTS.md), the full [Agent.md](Agent.md) policy and [historical lessons](docs/AI_LESSONS.md) before working. These cover authorization, evidence levels, testing, screenshots and release checks, and require agents to proactively document mistakes and add recurrence-prevention checks without waiting for a maintainer to ask.
+**AI development:** [AGENTS.md](AGENTS.md) is the sole complete policy; [CLAUDE.md](CLAUDE.md) imports it without duplicating rules. Read the policy and [historical lessons](docs/AI_LESSONS.md) before working, including authorization, evidence, data preservation, testing and proactive retrospectives.

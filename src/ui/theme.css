@@ -98,4 +98,20 @@ select, input, textarea { background: #fff; color: #364462; border-color: #d6dee
   .quiz-header .brand { font-size: 17px; }.quiz-header .button { min-height: 48px; font-size: 12px; }.quiz-content h1 { font-size: 28px; }.quiz-content > p { font-size: 13px; }.quiz-buddy { width: 60px; height: 60px; border-radius: 21px; }.question-card { padding: 25px 20px; }.question-card h2 { font-size: 24px; }.answer-option { min-height: 65px; padding: 15px 12px; font-size: 15px; gap: 8px; }.answer-option > span { width: 26px; height: 26px; }.quiz-progress > span { width: 29px; height: 29px; }.quiz-footer { font-size: 11px!important; }.toast { font-size: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); }
 }
 @media(max-width:375px) { .hero-copy h2 { font-size: 38px; }.hero-card { padding-left: 20px; padding-right: 20px; }.motion-island { height: 255px; }.timer-row { gap: 15px; }.timer-ring { width: 113px; height: 113px; }.timer-ring strong { font-size: 24px; }.guard-details > div, .guard-details strong { font-size: 10px; }.stat-card { padding: 14px 9px; }.stat-card p { font-size: 11px; }.stat-label { font-size: 11px; }.stat-card .soft-icon { width: 23px; height: 23px; }.hero-footnote { font-size: 10px; }.library-teaser > div { max-width: 220px; } }
+.form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field input, .field select, .field textarea { min-width: 0; max-width: 100%; }
+.subject-selector, .panel > .row, .question-info .row { flex-wrap: wrap; }
+.modal { overscroll-behavior: contain; }
+.library-actions { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.question-select { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; flex-shrink: 0; cursor: pointer; font-size: 13px; }
+.question-select input[type=checkbox] { width: 22px; height: 22px; min-height: 22px; margin: 0; accent-color: var(--green); }
+.library-pagination { justify-content: center; flex-wrap: wrap; margin-top: 18px; font-size: 13px; }
+.speech-control { margin: 12px 0 20px; }.speech-control p { margin-top: 10px; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+@media(max-width:650px) {
+  .section-heading { flex-wrap: wrap; }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .panel > .row { gap: 10px; }
+  input, select, textarea { font-size: 16px; }
+  .inline-number input[type=checkbox] { width: 24px; min-height: 24px; flex-shrink: 0; }
+}
 @media(prefers-reduced-motion:reduce) { .button, .icon-button { transition: none; }.reward-burst { display: none; } }

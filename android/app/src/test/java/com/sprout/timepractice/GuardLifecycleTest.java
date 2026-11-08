@@ -211,4 +211,23 @@ public class GuardLifecycleTest {
         assertNull(overlay()); assertFalse(GuardService.isQuizActivityVisible()); assertEquals("1", ((EditText) activity.findViewById(R.id.parent_pin)).getText().toString());
         parent.stop(); idle(); assertNotNull(overlay()); assertTrue(prefs.getBoolean("locked", false));
     }
+    @Test public void booleanQuizUsesFixedButtonsAndWrongAnswerKeepsLock() throws Exception {
+        JSONObject config = new JSONObject(prefs.getString("config", "{}"));
+        config.getJSONArray("questions").getJSONObject(0).put("type", "boolean").put("answer", "错误").put("grade", 8);
+        prefs.edit().putString("config", config.toString()).commit(); lock();
+        View root = overlay(); assertNull(find(root, EditText.class));
+        namedButton(root, "A   正确").performClick(); namedButton(root, "确认答案  →").performClick(); idle();
+        assertTrue(prefs.getBoolean("locked", false)); assertEquals(1, prefs.getInt("correct", 0));
+        namedButton(root, "B   错误").performClick(); namedButton(root, "确认答案  →").performClick(); idle();
+        assertEquals(2, prefs.getInt("correct", 0)); assertTrue(prefs.getBoolean("locked", false));
+        JSONArray attempts = new JSONArray(prefs.getString("attempts", "[]")); assertEquals(2, attempts.length()); assertFalse(attempts.getJSONObject(0).getBoolean("correct")); assertTrue(attempts.getJSONObject(1).getBoolean("correct"));
+    }
+    @Test public void allDisabledConfigurationCannotStartAQuestionlessGuard() throws Exception {
+        JSONObject config = new JSONObject(prefs.getString("config", "{}")); config.getJSONArray("questions").getJSONObject(0).put("enabled", false);
+        prefs.edit().putString("config", config.toString()).commit(); startService(); assertFalse(prefs.getBoolean("active", true)); assertNull(overlay()); assertTrue(prefs.getString("error", "").contains("启用"));
+    }
+    @Test public void nativeDictationKeepsAnswerProgressDeadlineAndDoesNotCreateAnAttempt() throws Exception {
+        JSONObject config = new JSONObject(prefs.getString("config", "{}")); config.getJSONArray("questions").getJSONObject(0).put("subject", "英语").put("answer", "apple").put("semester", "lower").put("lesson", 7).put("lessonTitle", "太空探索"); prefs.edit().putString("config", config.toString()).commit(); lock();
+        View root = overlay(); long deadline = prefs.getLong("deadlineElapsed", 0); Button listen = namedButton(root, "听英文（听写）"); assertNotNull(listen); listen.performClick(); idle(); assertEquals("", find(root, EditText.class).getText().toString()); assertEquals(1, prefs.getInt("correct", 0)); assertEquals(deadline, prefs.getLong("deadlineElapsed", 0)); assertEquals(0, new JSONArray(prefs.getString("attempts", "[]")).length()); assertTrue(prefs.getBoolean("locked", false));
+    }
 }

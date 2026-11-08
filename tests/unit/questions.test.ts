@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { mergeQuestions, parseQuestions, seedQuestions, validateQuestion } from '../../src/lib/questions'
+import { getQuestionType, subjectsForGrade } from '../../src/lib/model'
 const q = { grade: 3, subject: '数学', prompt: '24 × 3 = ？', options: ['48', '72', '96'], answer: '72', explanation: '24 的 3 倍' }
 describe('本地题库', () => {
-  it('所有示例题均通过校验', () => { expect(seedQuestions()).toHaveLength(120); seedQuestions().forEach(v => expect(validateQuestion(v)).toEqual(v)) })
+  it('所有示例题通过校验，12 年级对应科目均有三题型及真假判断', () => {
+    const bank = seedQuestions(); expect(bank.length).toBeGreaterThan(1000); expect(new Set(bank.map(v => v.id)).size).toBe(bank.length)
+    bank.forEach(v => expect(validateQuestion(v)).toEqual(v))
+    for (let grade = 1; grade <= 12; grade++) for (const subject of subjectsForGrade(grade)) {
+      const subset = bank.filter(q => q.grade === grade && q.subject === subject)
+      expect(new Set(subset.map(getQuestionType))).toEqual(new Set(['choice', 'fill', 'boolean']))
+      expect(subset.some(q => q.type === 'boolean' && q.answer === '错误')).toBe(true)
+    }
+  })
   it('导入 JSON 时生成本地唯一 ID，不信任文件 ID', () => {
     const result = parseQuestions(JSON.stringify([{ ...q, id: 'external' }, q]), 'test.JSON')
     expect(result).toHaveLength(2); expect(result[0].id).not.toBe('external'); expect(result[0].id).not.toBe(result[1].id)
@@ -16,7 +25,7 @@ describe('本地题库', () => {
     expect(result[0].options).toEqual(['48','72','96'])
   })
   it('原子校验：一条错误则整个文件拒绝，并指出行号', () => {
-    expect(() => parseQuestions(JSON.stringify([q, { ...q, grade: 9 }]), 'q.json')).toThrow('第 2 道题')
+    expect(() => parseQuestions(JSON.stringify([q, { ...q, grade: 13 }]), 'q.json')).toThrow('第 2 道题')
   })
   it('拒绝无效答案、重复选项、错误学科', () => {
     expect(() => validateQuestion({ ...q, answer: 'B' })).toThrow('答案')

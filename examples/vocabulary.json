@@ -1,0 +1,5 @@
+[
+  { "english": "apple", "chinese": "苹果", "grade": 3, "unit": "水果", "semester": "upper", "lesson": 1, "lessonTitle": "水果" },
+  { "english": "book", "chinese": "书", "grade": 3, "unit": "学校", "semester": "lower", "lesson": 2, "lessonTitle": "学校" },
+  { "english": "knowledge", "chinese": "知识", "grade": 7, "unit": "阅读", "semester": "upper", "lesson": 1, "lessonTitle": "阅读" }
+]

@@ -1,0 +1,1 @@
+export function isNativeArmMac(platform?: string, query?: () => string): boolean

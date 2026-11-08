@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:profile": "npm run build && node scripts/profile-e2e.mjs",
     "docs:screenshots": "npm run build && node scripts/capture-docs.mjs",
     "docs:verify": "node scripts/verify-docs.mjs",
     "sync": "npm run build && cap sync",

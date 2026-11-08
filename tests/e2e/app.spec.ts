@@ -29,14 +29,19 @@ test('错误答案不能解锁，答对三题结束练习，并持久化记录',
   await setup(page); await page.getByRole('button', { name: '先练习一下' }).click()
   const quiz = page.getByRole('dialog', { name: '答题时间' })
   const prompt = await quiz.locator('h2').innerText()
-  const [a, b] = prompt.match(/\d+/g)!.map(Number), result = String(a * b)
-  await quiz.locator('.answer-option').filter({ hasNotText: result }).first().click()
+  const getAnswer = async () => page.evaluate(() => { const data = JSON.parse(localStorage.getItem('CapacitorStorage.sprout.data.v1')!); return data.questions.find((q: { id: string }) => q.id === data.session.queue[data.session.index % data.session.queue.length]).answer as string })
+  const result = await getAnswer()
+  if (await quiz.locator('.answer-option').count()) {
+    const options = quiz.locator('.answer-option'); for (let i = 0; i < await options.count(); i++) if (!(await options.nth(i).innerText()).endsWith(result)) { await options.nth(i).click(); break }
+  } else await quiz.getByLabel('你的答案').fill('definitely-wrong')
   await quiz.getByRole('button', { name: '确认答案' }).click()
   await expect(quiz.getByRole('alert')).toContainText('差一点点')
   await expect(quiz.locator('h2')).toHaveText(prompt)
   for (let i = 0; i < 3; i++) {
-    const text = await quiz.locator('h2').innerText(), [x,y] = text.match(/\d+/g)!.map(Number)
-    await quiz.locator('.answer-option').filter({ hasText: new RegExp(`^[A-F]${x * y}$`) }).click()
+    const answer = await getAnswer()
+    if (await quiz.locator('.answer-option').count()) {
+      const options = quiz.locator('.answer-option'); for (let j = 0; j < await options.count(); j++) if ((await options.nth(j).innerText()).endsWith(answer)) { await options.nth(j).click(); break }
+    } else await quiz.getByLabel('你的答案').fill(answer)
     await quiz.getByRole('button', { name: '确认答案' }).click()
   }
   await expect(quiz).not.toBeVisible()
@@ -75,6 +80,7 @@ test('家长可添加、编辑并删除本地题目', async ({ page }) => {
   await setup(page); await page.getByRole('button', { name: '管理题库' }).click(); await parent(page)
   await page.getByRole('button', { name: '添加题目', exact: true }).click(); await parent(page)
   let editor = page.getByRole('dialog', { name: '添加一道新题' })
+  await editor.getByLabel('题型', { exact: true }).selectOption('fill')
   await editor.getByLabel('题目', { exact: true }).fill('测试填空题：一小时多少分钟？')
   await editor.getByLabel('正确答案', { exact: true }).fill('60')
   await editor.getByRole('button', { name: '保存到本地题库' }).click()

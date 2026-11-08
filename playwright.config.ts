@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
-import { execSync } from 'node:child_process'
-const appleSilicon = process.platform === 'darwin' && execSync('uname -m').toString().trim() === 'arm64'
+import { isNativeArmMac } from './scripts/browser-platform.mjs'
+const appleSilicon = isNativeArmMac()
 const launchOptions = appleSilicon ? { executablePath: fileURLToPath(new URL('./scripts/chrome-arm64.sh', import.meta.url)) } : undefined
 export default defineConfig({
   testDir: './tests/e2e', fullyParallel: false, timeout: 120_000,

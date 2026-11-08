@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Check, LockKeyhole, Save, ShieldCheck, Smartphone } from '../ui/icons'
 import type { Settings, Subject } from '../lib/model'
-import { gradeLabel, validateSettings } from '../lib/model'
+import { grades, gradeLabel, subjectsForGrade, validateSettings } from '../lib/model'
 import { isAndroid } from '../lib/native'
 import type { GuardStatus } from '../lib/native'
 export function SettingsPanel({ settings, onSave, onPassword, onPermission, granted, active, guard, onBackground, onRecover, onDiagnostics }: { settings: Settings; onSave: (s: Settings) => void; onPassword: () => void; onPermission: () => void; granted: boolean; active: boolean; guard: GuardStatus | null; onBackground: (screen: 'app' | 'battery') => void; onRecover: () => void; onDiagnostics: () => void }) {
@@ -10,8 +10,9 @@ export function SettingsPanel({ settings, onSave, onPassword, onPermission, gran
     <div className="section-heading"><div><h2>把节奏交给家长</h2><p>适合孩子的，才是最好的学习节奏。</p></div><span className="soft-icon"><ShieldCheck /></span></div>
     <form onSubmit={e => { e.preventDefault(); try { validateSettings(draft); onSave({ ...draft, name: draft.name.trim() }) } catch (err) { setError(err instanceof Error ? err.message : '请检查设置') } }}>
       <label className="field">孩子的昵称<input required maxLength={20} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
-      <label className="field">学习年级<select value={draft.grade} onChange={e => setDraft({ ...draft, grade: Number(e.target.value) })}>{[1,2,3,4,5,6].map(g => <option key={g} value={g}>{gradeLabel(g)}</option>)}</select></label>
-      <div className="field">答题学科<div className="subject-selector">{(['数学','语文','英语'] as Subject[]).map(s => <button key={s} type="button" className={`chip ${draft.subjects.includes(s) ? 'active' : ''}`} onClick={() => setDraft({ ...draft, subjects: draft.subjects.includes(s) ? draft.subjects.filter(v => v !== s) : [...draft.subjects, s] })}>{draft.subjects.includes(s) && <Check size={14} />}{s}</button>)}</div></div>
+      <label className="field">学习年级<select value={draft.grade} onChange={e => { const grade = Number(e.target.value); const subjects = draft.subjects.filter(s => subjectsForGrade(grade).includes(s)); setDraft({ ...draft, grade, subjects: subjects.length ? subjects : ['数学'] }) }}>{grades.map(g => <option key={g} value={g}>{gradeLabel(g)}</option>)}</select></label>
+      <div className="field">答题学科<div className="subject-selector">{subjectsForGrade(draft.grade).map((s: Subject) => <button key={s} type="button" className={`chip ${draft.subjects.includes(s) ? 'active' : ''}`} onClick={() => setDraft({ ...draft, subjects: draft.subjects.includes(s) ? draft.subjects.filter(v => v !== s) : [...draft.subjects, s] })}>{draft.subjects.includes(s) && <Check size={14} />}{s}</button>)}</div></div>
+      <p className="small muted">只抽取当前年级、所选学科中已启用的题目。未做题与高错率题加权优先，最近出现的题目降权。可在题库按单元、题型决定哪些题出现。</p>
       <div className="setting-block"><div className="row between"><label htmlFor="interval">每隔多久答题</label><strong>{draft.intervalMinutes} <span>分钟</span></strong></div><input id="interval" type="range" min={1} max={120} value={draft.intervalMinutes} onChange={e => setDraft({ ...draft, intervalMinutes: Number(e.target.value) })} /><div className="range-labels"><span>1 分钟</span><span>120 分钟</span></div><label className="inline-number">精确设置<input aria-label="答题间隔分钟数" type="number" min={1} max={120} value={draft.intervalMinutes} onChange={e => setDraft({ ...draft, intervalMinutes: Number(e.target.value) })} />分钟</label></div>
       <div className="setting-block"><div className="row between"><label htmlFor="required">答对几题可以继续玩</label><strong>{draft.requiredCorrect} <span>道</span></strong></div><input id="required" type="range" min={1} max={20} value={draft.requiredCorrect} onChange={e => setDraft({ ...draft, requiredCorrect: Number(e.target.value) })} /><p className="small muted">累计答对后解锁；答错留在当前题，不会自动放行。</p></div>
       {active && <p className="notice">守护运行中。请先通过家长密码停止守护，再修改规则。</p>}

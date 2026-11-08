@@ -1,5 +1,8 @@
-grade,subject,prompt,options,answer,explanation
-3,数学,24 × 3 = ？,48|72|96|64,72,把 24 相加三次，结果是 72。
-3,数学,一小时有多少分钟？,,60,1 小时等于 60 分钟。
-3,语文,“温暖”的反义词是？,寒冷|明亮|热情|暖和,寒冷,温暖与寒冷表达相反的意思。
-3,英语,“苹果”的英文是？,apple|book|cat|sun,apple,apple 表示苹果。
+grade,subject,type,prompt,options,answer,explanation,enabled,unit,source,word,semester,lesson,lessonTitle
+3,数学,choice,24 × 3 = ？,48|72|96|64,72,24 的 3 倍是 72,true,乘法,家长自编,,upper,1,乘法
+3,数学,fill,一小时有多少分钟？,,60,1 小时等于 60 分钟,true,时间,家长自编,,lower,2,时间
+3,数学,boolean,判断：1 米等于 100 厘米。,,正确,长度单位换算,true,长度,家长自编,,upper,3,长度
+3,英语,choice,看英语选中文：apple,苹果|书|猫|太阳,苹果,apple 表示苹果,true,水果,家长词表,apple,upper,1,水果
+3,英语,fill,看中文写英语：苹果,,apple,apple 表示苹果,true,水果,家长词表,apple,upper,1,水果
+8,物理,fill,速度等于路程除以什么？,,时间,v = s / t,true,运动,家长自编,,lower,2,运动
+10,化学,boolean,判断：水的化学式为 CO2。,,错误,水的化学式是 H2O,false,物质,家长自编,,upper,1,物质

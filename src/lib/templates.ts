@@ -1,0 +1,13 @@
+import Papa from 'papaparse'
+const examples = [
+  { grade: 3, subject: '数学', type: 'choice', prompt: '24 × 3 = ？', options: ['48', '72', '96', '64'], answer: '72', explanation: '24 的 3 倍是 72', enabled: true, unit: '乘法', source: '家长自编', word: '' },
+  { grade: 3, subject: '数学', type: 'fill', prompt: '一小时有多少分钟？', options: [], answer: '60', explanation: '1 小时等于 60 分钟', enabled: true, unit: '时间', source: '家长自编', word: '' },
+  { grade: 3, subject: '数学', type: 'boolean', prompt: '判断：1 米等于 100 厘米。', options: [], answer: '正确', explanation: '长度单位换算', enabled: true, unit: '长度', source: '家长自编', word: '' },
+  { grade: 3, subject: '英语', type: 'choice', prompt: '看英语选中文：apple', options: ['苹果', '书', '猫', '太阳'], answer: '苹果', explanation: 'apple 表示苹果', enabled: true, unit: '水果', source: '家长词表', word: 'apple' },
+  { grade: 3, subject: '英语', type: 'fill', prompt: '看中文写英语：苹果', options: [], answer: 'apple', explanation: 'apple 表示苹果', enabled: true, unit: '水果', source: '家长词表', word: 'apple' },
+  { grade: 8, subject: '物理', type: 'fill', prompt: '速度等于路程除以什么？', options: [], answer: '时间', explanation: 'v = s / t', enabled: true, unit: '运动', source: '家长自编', word: '' },
+  { grade: 10, subject: '化学', type: 'boolean', prompt: '判断：水的化学式为 CO2。', options: [], answer: '错误', explanation: '水的化学式是 H2O', enabled: false, unit: '物质', source: '家长自编', word: '' },
+]
+export const questionExamples = examples.map((q, i) => ({ ...q, semester: i === 1 || i === 5 ? 'lower' : 'upper', lesson: [1,2,3,1,1,2,1][i], lessonTitle: q.unit }))
+export const questionTemplateCSV = '\uFEFF' + Papa.unparse(questionExamples.map(q => ({ ...q, options: q.options.join('|') })))
+export const vocabularyTemplateCSV = '\uFEFF' + Papa.unparse([{ english: 'apple', chinese: '苹果', grade: 3, unit: '水果', semester: 'upper', lesson: 1, lessonTitle: '水果' }, { english: 'book', chinese: '书', grade: 3, unit: '学校', semester: 'lower', lesson: 2, lessonTitle: '学校' }, { english: 'knowledge', chinese: '知识', grade: 7, unit: '阅读', semester: 'upper', lesson: 1, lessonTitle: '阅读' }])

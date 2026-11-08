@@ -8,7 +8,8 @@ const now = 1_700_000_000_000
 describe('守护状态机', () => {
   it('仅抽取所选年级与学科', () => {
     const selected = eligibleQuestions(questions, settings)
-    expect(selected).toHaveLength(12)
+    expect(selected.length).toBeGreaterThan(12)
+    expect(new Set(selected.map(q => q.type))).toEqual(new Set(['choice','fill','boolean']))
     expect(selected.every(q => q.grade === 3 && q.subject === '数学')).toBe(true)
   })
   it('启动后正常计时，截止前不锁定，截止时锁定', () => {
@@ -72,7 +73,7 @@ describe('守护状态机', () => {
   it('倒计时不出现负数，支持 120 分钟', () => {
     expect(formatCountdown(-100)).toBe('00:00'); expect(formatCountdown(120 * 60_000)).toBe('120:00'); expect(formatCountdown(1001)).toBe('00:02')
   })
-  it.each([{ intervalMinutes: 0 }, { intervalMinutes: 121 }, { intervalMinutes: 1.5 }, { requiredCorrect: 0 }, { requiredCorrect: 21 }, { subjects: [] }, { grade: 7 }, { name: '' }])('规则校验 %j', invalid => {
+  it.each([{ intervalMinutes: 0 }, { intervalMinutes: 121 }, { intervalMinutes: 1.5 }, { requiredCorrect: 0 }, { requiredCorrect: 21 }, { subjects: [] }, { grade: 13 }, { name: '' }])('规则校验 %j', invalid => {
     expect(() => validateSettings({ ...settings, ...invalid })).toThrow()
   })
 })

@@ -77,6 +77,7 @@ public class GuardService extends Service {
     private boolean motionPaused = false;
     private JSONArray questions;
     private JSONObject config;
+    private EnglishSpeech speech;
     private int overlayWidth, overlayHeight;
     private long heartbeatSavedAt, overlayRetryAt;
     private final int green = Color.rgb(103, 87, 206), ink = Color.rgb(236, 243, 255);
@@ -180,8 +181,9 @@ public class GuardService extends Service {
                 .setContentText("到时间答题，答对再继续。点击家长退出可验证密码停止。").setContentIntent(open).addAction(new Notification.Action.Builder(null, "去答题", quiz).build()).addAction(new Notification.Action.Builder(null, "家长退出", parent).build()).setOngoing(true).build();
             if (Build.VERSION.SDK_INT >= 34) startForeground(73, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             else startForeground(73, notification);
-            config = new JSONObject(prefs.getString("config", "{}")); questions = config.getJSONArray("questions");
-            if (!prefs.getBoolean("active", false) || questions.length() == 0) { stopSelf(); return START_NOT_STICKY; }
+            config = new JSONObject(prefs.getString("config", "{}")); questions = GuardQuestions.enabled(config.getJSONArray("questions"));
+            if (!prefs.getBoolean("active", false)) { stopSelf(); return START_NOT_STICKY; }
+            if (questions.length() == 0) { fail("当前没有启用的题目，请由家长检查题库"); return START_NOT_STICKY; }
             int boot = Settings.Global.getInt(getContentResolver(), Settings.Global.BOOT_COUNT, 0);
             if (prefs.getInt("boot", boot) != boot) { fail("设备重启后，请由家长重新开启守护"); return START_NOT_STICKY; }
             String session = prefs.getString("sessionId", ""); if (!session.equals(currentSessionId)) activityLaunchAttempted = false;
@@ -239,6 +241,7 @@ public class GuardService extends Service {
 
     private void renderQuestion() {
         if (content == null) return;
+        if (speech != null) speech.stop();
         content.removeAllViews();
         content.setBackgroundColor(Color.TRANSPARENT);
         if (motionHost != null) motionHost.setVisibility(View.VISIBLE);
@@ -249,19 +252,28 @@ public class GuardService extends Service {
             updateMotion();
             addText("✦  学伴时光 · 给大脑充个电", 18, Color.rgb(203, 198, 250), true);
             addText("已答对 " + correct + " / " + target + " 道。答对后就能继续玩。", 15, ink, false);
-            addText(q.getString("subject") + " · " + q.getInt("grade") + " 年级", 13, Color.rgb(182, 203, 233), false);
+            addText(q.getString("subject") + " · " + GuardQuestions.gradeLabel(q.getInt("grade")) + " · " + (GuardQuestions.booleanType(q) ? "判断题" : q.getJSONArray("options").length() == 0 ? "填空题" : "选择题"), 13, Color.rgb(182, 203, 233), false);
+            String semester = q.optString("semester", "unspecified"); int lesson = q.optInt("lesson", 0);
+            if (!"unspecified".equals(semester) || lesson > 0) addText(("upper".equals(semester) ? "上册" : "lower".equals(semester) ? "下册" : "册次未标注") + " · " + (lesson > 0 ? "第 " + lesson + " 课" : "课次未标注") + " " + q.optString("lessonTitle"), 13, Color.rgb(182, 203, 233), false);
             addText(q.getString("prompt"), 28, ink, true);
-            JSONArray options = q.getJSONArray("options");
+            JSONArray options = GuardQuestions.booleanType(q) ? new JSONArray().put("正确").put("错误") : q.getJSONArray("options");
             final String[] selected = { "" };
             TextView feedback = new TextView(uiContext); feedback.setTextSize(15); feedback.setTextColor(Color.rgb(250, 215, 152));
             EditText input = null;
+            if ("英语".equals(q.optString("subject")) && options.length() == 0 && EnglishSpeech.validText(q.optString("answer"))) {
+                Button listen = button("听英文（听写）", false);
+                listen.setOnClickListener(v -> {
+                    if (speech == null) speech = new EnglishSpeech(this);
+                    speech.speak(q.optString("answer"), (available, message) -> { if (listen.getParent() != null) feedback.setText(message); });
+                });
+            }
             if (options.length() == 0) {
                 input = new EditText(uiContext); input.setSingleLine(true); input.setTextSize(20); input.setHint("填写你的答案"); input.setFilters(new InputFilter[] { new InputFilter.LengthFilter(160) });
                 input.setTextColor(ink); input.setHintTextColor(Color.rgb(179, 197, 220)); input.setBackground(answerBackground(false)); input.setPadding(dp(16), dp(14), dp(16), dp(14));
                 content.addView(input, blockParams());
             } else {
                 ArrayList<String> values = new ArrayList<>(); for (int i = 0; i < options.length(); i++) values.add(options.getString(i));
-                Collections.shuffle(values);
+                if (!GuardQuestions.booleanType(q)) Collections.shuffle(values);
                 ArrayList<Button> buttons = new ArrayList<>();
                 for (int i = 0; i < values.size(); i++) {
                     String option = values.get(i); Button b = button((char) ('A' + i) + "   " + option, false); buttons.add(b);
@@ -275,11 +287,12 @@ public class GuardService extends Service {
                 String answer = finalInput == null ? selected[0] : finalInput.getText().toString();
                 if (answer.trim().isEmpty()) { feedback.setText("请先选择或填写答案"); return; }
                 try {
-                    boolean right = normalize(answer).equals(normalize(q.getString("answer")));
+                    boolean right = GuardQuestions.correct(q, answer);
                     record(q, answer, right);
                     if (!right) { feedback.setText("差一点点！再读一遍题目，继续试试。答错不会扣分。"); return; }
                     if (correct + 1 >= target) {
-                        ArrayList<JSONObject> shuffled = asQuestionList(); Collections.shuffle(shuffled); questions = new JSONArray(shuffled);
+                        JSONArray history = GuardQuestions.history(config.optJSONArray("history") == null ? new JSONArray() : config.getJSONArray("history"), new JSONArray(prefs.getString("attempts", "[]")));
+                        questions = GuardQuestions.prioritize(questions, history, System.currentTimeMillis(), Math::random);
                         config.put("questions", questions);
                         prefs.edit().putBoolean("locked", false).putInt("correct", 0).putInt("index", 0)
                             .putLong("deadlineElapsed", SystemClock.elapsedRealtime() + config.getJSONObject("settings").getInt("intervalMinutes") * 60_000L)
@@ -295,9 +308,6 @@ public class GuardService extends Service {
         } catch (Exception e) { fail("题目数据不可用，请由家长重新导入"); }
     }
 
-    private ArrayList<JSONObject> asQuestionList() throws Exception {
-        ArrayList<JSONObject> values = new ArrayList<>(); for (int i = 0; i < questions.length(); i++) values.add(questions.getJSONObject(i)); return values;
-    }
     static String normalize(String answer) { return Normalizer.normalize(answer, Normalizer.Form.NFKC).trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT); }
 
     private void record(JSONObject q, String answer, boolean correct) throws Exception {
@@ -309,6 +319,7 @@ public class GuardService extends Service {
     }
 
     private void openParent() {
+        if (speech != null) speech.stop();
         try {
             startActivity(new Intent(this, ParentAccessActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             GuardDiagnostics.record(this, "parent_requested", "浮层点击家长退出");
@@ -366,11 +377,11 @@ public class GuardService extends Service {
         } catch (Exception ignored) { /* Animation must never block native exit or answers. */ }
     }
     private void destroyMotion() { if (motionView != null) { if (motionHost != null) motionHost.removeView(motionView); motionView.stopLoading(); motionView.onPause(); motionView.destroy(); motionView = null; } }
-    private void clearQuizUi() { destroyMotion(); content = null; motionHost = null; motionToggle = null; overlayWidth = 0; overlayHeight = 0; uiContext = overlayContext; }
+    private void clearQuizUi() { if (speech != null) speech.stop(); destroyMotion(); content = null; motionHost = null; motionToggle = null; overlayWidth = 0; overlayHeight = 0; uiContext = overlayContext; }
     private void removeOverlay() { if (overlay != null) { try { windows.removeView(overlay); } catch (Exception ignored) {} overlay = null; clearQuizUi(); } }
     private void fail(String message) { prefs.edit().putBoolean("active", false).putBoolean("locked", false).putString("error", message).apply(); GuardAlarmReceiver.cancel(this); GuardDiagnostics.record(this, "guard_error", message); removeOverlay(); stopSelf(); }
     @Override public void onConfigurationChanged(Configuration config) { super.onConfigurationChanged(config); if (overlay != null) resizeContent(overlay.getWidth()); }
     @Override public void onTaskRemoved(Intent rootIntent) { GuardAlarmReceiver.schedule(this, prefs); GuardDiagnostics.record(this, "task_removed", "主界面退出最近任务，原生守护仍继续"); super.onTaskRemoved(rootIntent); }
-    @Override public void onDestroy() { running = false; heartbeatElapsed = 0; currentSessionId = ""; if (instance == this) instance = null; handler.removeCallbacksAndMessages(null); closeQuizActivity(); removeOverlay(); unregisterReceiver(screenReceiver); GuardDiagnostics.record(this, "service_destroyed", prefs.getBoolean("active", false) ? "系统停止服务，配置仍待恢复" : "守护已正常停止"); super.onDestroy(); }
+    @Override public void onDestroy() { if (speech != null) speech.close(); running = false; heartbeatElapsed = 0; currentSessionId = ""; if (instance == this) instance = null; handler.removeCallbacksAndMessages(null); closeQuizActivity(); removeOverlay(); unregisterReceiver(screenReceiver); GuardDiagnostics.record(this, "service_destroyed", prefs.getBoolean("active", false) ? "系统停止服务，配置仍待恢复" : "守护已正常停止"); super.onDestroy(); }
     @Override public IBinder onBind(Intent intent) { return null; }
 }

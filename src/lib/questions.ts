@@ -1,5 +1,7 @@
 import Papa from 'papaparse'
 import type { Question, Subject } from './model'
+import { getQuestionType, parseGrade, parseLesson, parseSemester, subjectsForGrade } from './model'
+import { expansionQuestions } from './starter-bank'
 
 // Small, original starter bank; parents can replace or expand it locally.
 export function seedQuestions(): Question[] {
@@ -29,7 +31,7 @@ export function seedQuestions(): Question[] {
     ] as const
     english.forEach(([prompt, options, answer, explanation], i) => result.push({ id: `seed-e-${grade}-${i}`, grade, subject: '英语', prompt, options: [...options], answer, explanation }))
   }
-  return result
+  return [...result, ...expansionQuestions()].map(validateQuestion)
 }
 function text(value: unknown, name: string, max: number): string {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) throw new Error(`${name}需为 1–${max} 个字符`)
@@ -38,16 +40,38 @@ function text(value: unknown, name: string, max: number): string {
 export function validateQuestion(value: unknown): Question {
   if (!value || typeof value !== 'object') throw new Error('题目必须是对象')
   const q = value as Record<string, unknown>
-  const grade = Number(q.grade)
-  if (!Number.isInteger(grade) || grade < 1 || grade > 6) throw new Error('年级需为 1–6')
-  if (!['数学', '语文', '英语'].includes(String(q.subject))) throw new Error('学科仅支持数学、语文、英语')
-  const options = Array.isArray(q.options) ? q.options.map(o => text(o, '选项', 160)) : []
+  const grade = parseGrade(q.grade)
+  if (!Number.isInteger(grade) || grade < 1 || grade > 12) throw new Error('年级需为 1–12（7–9 为初中，10–12 为高中）')
+  if (!subjectsForGrade(grade).includes(q.subject as Subject)) throw new Error('学科不属于当前学段，请选择对应学段科目')
+  if (q.options != null && !Array.isArray(q.options)) throw new Error('JSON 选项必须是数组')
+  let options = Array.isArray(q.options) ? q.options.map(o => text(o, '选项', 160)) : []
+  const aliases: Record<string, 'choice' | 'fill' | 'boolean'> = { choice: 'choice', fill: 'fill', boolean: 'boolean', '选择题': 'choice', '填空题': 'fill', '判断题': 'boolean' }
+  const type = q.type == null || q.type === '' ? options.length ? 'choice' : 'fill' : Object.keys(aliases).includes(String(q.type)) ? aliases[String(q.type)] : undefined
+  if (!type) throw new Error('题型需为 choice/选择题、fill/填空题或 boolean/判断题')
+  const answer = type === 'boolean' ? booleanAnswer(q.answer) : text(q.answer, '答案', 160)
+  if (type === 'boolean') { if (!answer) throw new Error('判断题答案请填写正确/错误或 true/false'); options = ['正确', '错误'] }
+  if (type === 'choice' && !options.length) throw new Error('选择题需有 2–6 个不重复选项')
+  if (type === 'fill' && options.length) throw new Error('填空题选项应留空')
   if (options.length !== 0 && (options.length < 2 || options.length > 6 || new Set(options).size !== options.length)) throw new Error('选择题需有 2–6 个不重复选项')
-  const answer = text(q.answer, '答案', 160)
   if (options.length && !options.includes(answer)) throw new Error('答案必须与某个选项的文字完全一致，不要填写 A/B/C/D')
   return { id: typeof q.id === 'string' && q.id ? q.id : crypto.randomUUID(), grade,
-    subject: q.subject as Subject, prompt: text(q.prompt, '题干', 1000), options, answer,
+    subject: q.subject as Subject, prompt: text(q.prompt, '题干', 1000), options, answer, type,
+    enabled: parseEnabled(q.enabled), semester: parseSemester(q.semester), lesson: parseLesson(q.lesson), lessonTitle: typeof q.lessonTitle === 'string' ? q.lessonTitle.trim().slice(0, 80) : '',
+    unit: typeof q.unit === 'string' ? q.unit.trim().slice(0, 80) : '', source: typeof q.source === 'string' ? q.source.trim().slice(0, 300) : '', word: typeof q.word === 'string' ? q.word.trim().slice(0, 80) : '',
     explanation: typeof q.explanation === 'string' ? q.explanation.trim().slice(0, 2000) : '' }
+}
+export function booleanAnswer(value: unknown) {
+  const normalized = String(value ?? '').normalize('NFKC').trim().toLowerCase()
+  if (['正确', '对', '是', 'true', '1', '√'].includes(normalized)) return '正确'
+  if (['错误', '错', '否', 'false', '0', '×'].includes(normalized)) return '错误'
+  return ''
+}
+function parseEnabled(value: unknown) {
+  if (value == null || value === '') return true
+  if (typeof value === 'boolean') return value
+  if (['true', '1', '启用', '是'].includes(String(value).trim().toLowerCase())) return true
+  if (['false', '0', '禁用', '否'].includes(String(value).trim().toLowerCase())) return false
+  throw new Error('enabled 请填写 true/false')
 }
 export function parseQuestions(content: string, filename: string): Question[] {
   let values: unknown[]
@@ -67,7 +91,7 @@ export function parseQuestions(content: string, filename: string): Question[] {
   })
 }
 export function mergeQuestions(existing: Question[], incoming: Question[]) {
-  const key = (q: Question) => JSON.stringify([q.grade, q.subject, q.prompt, q.options, q.answer])
+  const key = (q: Question) => JSON.stringify([q.grade, q.subject, parseSemester(q.semester), parseLesson(q.lesson), q.lessonTitle ?? '', getQuestionType(q), q.prompt, q.options, q.answer])
   const keys = new Set(existing.map(key))
   const added = incoming.filter(q => { const k = key(q); if (keys.has(k)) return false; keys.add(k); return true })
   if (existing.length + added.length > 5000) throw new Error('本地题库最多保存 5000 道题，请先整理题库')

@@ -25,12 +25,25 @@ import java.util.concurrent.Executors;
 import java.util.UUID;
 import androidx.core.app.NotificationManagerCompat;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 @CapacitorPlugin(name = "LearningGuard")
 public class LearningGuardPlugin extends Plugin {
     private final ExecutorService authWorker = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private EnglishSpeech speech;
+    private EnglishSpeech speech() { if (speech == null) speech = new EnglishSpeech(getContext()); return speech; }
     private SharedPreferences prefs() { return getContext().getSharedPreferences(GuardService.PREFS, Context.MODE_PRIVATE); }
+
+    @PluginMethod public void getSpeechStatus(PluginCall call) {
+        getActivity().runOnUiThread(() -> speech().prepare((available, message) -> call.resolve(new JSObject().put("available", available).put("message", message))));
+    }
+    @PluginMethod public void speakEnglish(PluginCall call) {
+        getActivity().runOnUiThread(() -> speech().speak(call.getString("text"), (available, message) -> call.resolve(new JSObject().put("available", available).put("message", message))));
+    }
+    @PluginMethod public void stopSpeech(PluginCall call) {
+        getActivity().runOnUiThread(() -> { if (speech != null) speech.stop(); call.resolve(); });
+    }
 
     @PluginMethod
     public void getStatus(PluginCall call) {
@@ -140,8 +153,12 @@ public class LearningGuardPlugin extends Plugin {
                 JSONObject q = questions.getJSONObject(i);
                 if (q.getString("prompt").trim().isEmpty() || q.getString("answer").trim().isEmpty() || !q.has("options")) throw new Exception("无效题目");
             }
-            JSONObject config = new JSONObject().put("questions", questions).put("settings", settings).put("credential", credential);
             SharedPreferences p = prefs();
+            JSONArray enabled = GuardQuestions.enabled(questions);
+            if (enabled.length() == 0) { call.reject("当前没有启用的题目"); return; }
+            JSArray importedAttempts = call.getArray("attempts");
+            JSONArray history = GuardQuestions.history(importedAttempts == null ? new JSONArray() : importedAttempts, new JSONArray(p.getString("attempts", "[]")));
+            JSONObject config = new JSONObject().put("questions", GuardQuestions.prioritize(enabled, history, System.currentTimeMillis(), Math::random)).put("settings", settings).put("credential", credential).put("history", history);
             if (!p.edit().putString("config", config.toString()).putBoolean("active", true).putBoolean("locked", false)
                 .putString("sessionId", UUID.randomUUID().toString())
                 .putLong("lastQuizRequestAt", 0).putLong("lastQuizActivityAt", 0).putString("lastQuizActivitySource", "")
@@ -184,5 +201,5 @@ public class LearningGuardPlugin extends Plugin {
     }
 
     @Override
-    protected void handleOnDestroy() { authWorker.shutdown(); handler.removeCallbacksAndMessages(null); }
+    protected void handleOnDestroy() { if (speech != null) speech.close(); authWorker.shutdown(); handler.removeCallbacksAndMessages(null); }
 }

@@ -31,11 +31,14 @@ export interface GuardStatus {
   diagnostics: { at: number; event: string; detail: string }[]
 }
 interface LearningGuardPlugin {
+  getSpeechStatus(): Promise<{ available: boolean; message: string }>
+  speakEnglish(options: { text: string }): Promise<{ available: boolean; message: string }>
+  stopSpeech(): Promise<void>
   getStatus(): Promise<GuardStatus>
   requestOverlay(): Promise<void>
   openBackgroundSettings(options: { screen: 'app' | 'battery' }): Promise<void>
   resumeService(): Promise<void>
-  start(options: { questions: Question[]; settings: Settings; credential: Credential }): Promise<void>
+  start(options: { questions: Question[]; settings: Settings; credential: Credential; attempts?: Attempt[] }): Promise<void>
   stop(options: { pin: string }): Promise<void>
   verifyParent(options: { pin: string; credential: Credential }): Promise<{ valid: boolean }>
 }

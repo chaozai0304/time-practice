@@ -1,15 +1,15 @@
-import { execFileSync } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { chromium, expect as baseExpect } from '@playwright/test'
 import { preview } from 'vite'
+import { isNativeArmMac } from './browser-platform.mjs'
 
 // Isolated browser demonstration only. No ADB, native device access or real data.
 const root = fileURLToPath(new URL('../', import.meta.url))
 const output = path.join(root, 'docs/screenshots')
 const expect = baseExpect.configure({ timeout: 60_000 })
-const armMac = process.platform === 'darwin' && execFileSync('uname', ['-m']).toString().trim() === 'arm64'
+const armMac = isNativeArmMac()
 const server = await preview({ root, preview: { host: '127.0.0.1', port: 4175, strictPort: true } })
 let browser
 try {
@@ -23,7 +23,7 @@ try {
   page.on('request', request => { if (!/^(http:\/\/127\.0\.0\.1:4175\/|data:|blob:)/.test(request.url())) external.push(request.url()) })
   const screenshot = async (name, locator = page) => {
     await page.evaluate(() => document.fonts.ready)
-    await locator.screenshot({ path: path.join(output, name), animations: 'disabled', ...(locator === page ? { fullPage: name === '03-settings.png' } : {}) })
+    await locator.screenshot({ path: path.join(output, name), animations: 'disabled', ...(locator === page ? { fullPage: ['03-settings.png', '04-library.png'].includes(name) } : {}) })
     console.log(`Captured ${name}`)
   }
   const dismissToast = async () => {
@@ -55,7 +55,6 @@ try {
   await page.locator('aside').getByRole('button', { name: '我的题库' }).click()
   await verify()
   await expect(page.getByLabel('搜索题目')).toBeVisible()
-  await screenshot('04-library.png')
   page.on('filechooser', () => {})
   await page.getByRole('button', { name: '导入题库', exact: true }).click()
   await verify()
@@ -66,6 +65,25 @@ try {
   await imported.getByRole('button', { name: '确认保存到本机' }).click()
   await expect(imported).not.toBeVisible()
   await dismissToast()
+
+  await page.getByLabel('题库年级').selectOption('3')
+  await page.getByLabel('题库学科').selectOption('数学')
+  await page.getByLabel('题库册次').selectOption('upper')
+  await page.getByLabel('题库课次').selectOption('1')
+  await expect(page.locator('.question-list-item')).toHaveCount(1)
+  await screenshot('04-library.png')
+  await page.getByRole('button', { name: /^编辑题目/ }).click()
+  await verify()
+  const editor = page.getByRole('dialog', { name: '编辑题目', exact: true })
+  await page.setViewportSize({ width: 1440, height: 1600 })
+  await expect(editor.getByLabel('教材册次')).toHaveValue('upper')
+  await expect(editor.getByLabel('第几课')).toHaveValue('1')
+  await expect(editor.getByRole('button', { name: '保存到本地题库' })).toBeInViewport()
+  await screenshot('11-course-editor.png', editor)
+  await editor.getByRole('button', { name: '保存到本地题库' }).click()
+  await expect(editor).not.toBeVisible()
+  await dismissToast()
+  await page.setViewportSize({ width: 1440, height: 1000 })
 
   await page.locator('aside').getByRole('button', { name: '成长首页' }).click()
   await page.getByRole('button', { name: '先练习一下' }).click()
@@ -94,11 +112,23 @@ try {
   await expect(page.locator('.record-item')).toHaveCount(1)
   await screenshot('08-records.png')
   await page.locator('aside').getByRole('button', { name: '成长首页' }).click()
+  await page.getByRole('button', { name: '进入单词星际跑酷' }).click()
+  const gamePrompt = await page.locator('.runner-question h3').innerText()
+  const gameAnswer = await page.evaluate(prompt => {
+    const data = JSON.parse(localStorage.getItem('CapacitorStorage.sprout.data.v1'))
+    return data.questions.find(q => q.subject === '英语' && q.grade === 3 && q.type === 'fill' && q.prompt.replace(/^看中文写英语[:：]\s*/, '') === prompt).answer
+  }, gamePrompt)
+  await page.getByLabel('游戏英文答案').fill(gameAnswer)
+  await page.getByRole('button', { name: '发射单词能量' }).click()
+  await expect(page.getByTestId('game-score')).toHaveText('1')
+  await page.getByRole('button', { name: '暂停游戏' }).click()
+  await screenshot('10-game.png', page.locator('.word-game'))
+  await page.getByRole('button', { name: '返回首页', exact: true }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await page.evaluate(() => window.scrollTo(0, 0))
   await screenshot('09-mobile.png')
   if (failures.length || external.length) throw new Error(JSON.stringify({ failures, external }))
-  console.log(`Verified 9 real browser screenshots in ${output}; no external requests or page errors.`)
+  console.log(`Verified 11 real browser screenshots in ${output}; no external requests or page errors.`)
   await context.close()
 } finally {
   await browser?.close()

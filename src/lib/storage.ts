@@ -3,9 +3,11 @@ import { defaultSettings, idleSession, validateSettings } from './model'
 import type { AppData } from './model'
 import { seedQuestions, validateQuestion } from './questions'
 import { tickSession } from './session'
+import { expansionQuestions } from './starter-bank'
+import { mergeQuestions } from './questions'
 const KEY = 'sprout.data.v1'
 export function initialData(): AppData {
-  return { version: 1, settings: { ...defaultSettings }, questions: seedQuestions(), credential: null, attempts: [], session: { ...idleSession }, authFailures: 0, authBlockedUntil: 0 }
+  return { version: 1, contentRevision: 2, settings: { ...defaultSettings }, questions: seedQuestions(), credential: null, attempts: [], session: { ...idleSession }, authFailures: 0, authBlockedUntil: 0 }
 }
 export async function loadData(): Promise<AppData> {
   const { value } = await Preferences.get({ key: KEY })
@@ -15,6 +17,11 @@ export async function loadData(): Promise<AppData> {
     if (data.version !== 1 || !Array.isArray(data.questions) || !Array.isArray(data.attempts)) throw new Error('数据版本不兼容')
     validateSettings(data.settings)
     data.questions = data.questions.map(validateQuestion)
+    if ((data.contentRevision ?? 0) < 2) {
+      const room = Math.max(0, 5000 - data.questions.length)
+      data.questions = mergeQuestions(data.questions, expansionQuestions().map(validateQuestion).slice(0, room)).questions
+      data.contentRevision = 2
+    }
     if (!data.session || !Array.isArray(data.session.queue)) throw new Error('计时数据损坏')
     if (data.session.active && (!data.session.queue.length || data.session.queue.some(id => !data.questions.some(q => q.id === id)))) throw new Error('守护题目缺失')
     return { ...data, session: tickSession(data.session, Date.now()), authFailures: data.authFailures || 0, authBlockedUntil: data.authBlockedUntil || 0 }
