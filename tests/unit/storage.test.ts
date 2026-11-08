@@ -7,6 +7,7 @@ import { createCredential, verifyPin } from '../../src/lib/auth'
 vi.mock('@capacitor/preferences', () => ({ Preferences: { get: vi.fn(), set: vi.fn() } }))
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(Preferences.set).mockResolvedValue() })
 describe('本地存储和启动恢复', () => {
+  it('新游戏难度持久化不修改旧学习规则、密码或题库', async () => { const data = initialData(); data.gameSettings = { spawnIntervalSeconds: 1.5, fallSpeed: 4 }; vi.mocked(Preferences.get).mockResolvedValue({ value: JSON.stringify(data) }); const restored = await loadData(); expect(restored.gameSettings).toEqual(data.gameSettings); expect(restored.settings).toEqual(data.settings); expect(restored.questions).toEqual(data.questions); expect(restored.credential).toEqual(data.credential) })
   it('真实非空1.3结构恢复保留密码/规则/记录/截止时间，课程字段只补未标注', async () => {
     const old = initialData(); old.questions = old.questions.filter(q => q.grade === 3 && q.subject === '数学').slice(0, 2).map(q => { const { semester: _semester, lesson: _lesson, lessonTitle: _title, ...rest } = q; return rest })
     old.settings = { ...old.settings, name: '恢复演示', intervalMinutes: 27, requiredCorrect: 6 }; old.credential = await createCredential('246810')

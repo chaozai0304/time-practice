@@ -38,13 +38,13 @@ A local-first learning companion: parents manage questions and learning interval
 - **智能复习**：新题与高错率题加权优先，近期题降权，按轮无重复排序。
 - **英语双向词汇**：三年级 254 个分类基础词/短语，生成 508 道“看英语选中文”“看中文写英语”题；可导入实际教材词表并导出基础词库。教材版本未确认，**不能声明涵盖北京某版上下册全部单词**。
 - **英语听写**：拼写题和单词游戏可点“听英文（听写）/重听”，使用系统本地英语语音；不显示或自动填答案、不计分。缺少本地语音时明确提示，不自动下载、联网合成或申请麦克风。
-- **单词星际跑酷**：正确拼写发射能量清理陨石，累计航程和连胜；答错重试、提示、暂停，10 词后休息，真实作答计入学习足迹。守护运行时不能借游戏解除锁定。
+- **全屏单词射击**：中文目标直接出现在星空场景中并下落；输入对应英文、按 Enter/点“发射子弹”，正确才发射真实追踪弹，命中才消除计分。可调中文出现间隔和下落速度，支持暂停/听写/提示，10 次命中后休息；错误作答记入学习足迹，漏词不伪造作答记录。
 - **学习规则**：间隔 1–120 分钟，每轮累计答对 1–20 道；答错留在当前题，应用内没有跳过或自动超时放行按钮。
 - **独立练习**：先体验答题，不启动跨应用守护。支持选择题、填空题、判断题，加权题序与随机选择题选项；判断题固定正确/错误，规范化全角数字、空格与英文大小写。
 - **家长验证**：自行设置 6 位密码，无默认密码；随机盐和 PBKDF2-HMAC-SHA256（120,000 次），不保存明文。连续输错 5 次暂停验证 30 秒。
 - **成长足迹**：真实答题统计、连续学习天数、每周图表和最近 10,000 次答题记录；支持导出。
 - **自适应视觉**：软 3D 学习小岛、全屏宇宙答题背景、透明题目层、清晰按钮和过关纸屑。Remotion + Three.js 动画支持暂停、减少动态效果、后台停播及静态降级。
-- **Android 1.4**：原生支持课程标注和离线英语听写，保留三题型、停用过滤、历史加权、计时浮层、家长数字键盘与诊断。不是系统级防退出版本。
+- **Android 1.5**：包含重做的全屏中文射击与难度保存，保留课程标注、离线听写、三题型、计时守护、家长数字键盘及诊断。不是系统级防退出版本。
 
 ### 平台支持与限制
 
@@ -137,9 +137,11 @@ npm run dev
 
 #### 单词游戏
 
-首页点击“进入单词星际跑酷”：看中文 → 输入英文 → 点击“发射单词能量” → 正确时清障并增加航程。答错不发射，继续当前词；“拼写提示”只给线索。每轮正确 10 词后提醒休息；作答自动记入学习足迹。无启用英语拼写题时须先由家长添加或导入词表。
+首页点击“进入单词星际跑酷”：中文目标从场景上方向下移动 → 点中文可锁定（也可填写任意场上词） → 输入英文 → Enter/“发射子弹” → 正确拼写生成追踪弹 → 弹道飞行 → 命中消除并计分。答错不发射，也不显示答案；“拼写提示”只给首字母和字符数，听写仍使用本地英语语音。
 
-![单词游戏：中文提示、英文输入、航程、暂停和能量发射](docs/screenshots/10-game.png)
+“调整难度”暂停场景，可调 **中文出现间隔 1–12 秒**（越小越频繁）、**下落速度 1–8**（越大越快），自动保存本机；同时最多 3 个不同英文目标。暂停保留中文、子弹与输入草稿，后台或守护接管也暂停。漏词计入游戏漏词数，不伪造输入/错误记录；题库不足时循环，命中 10 个后提醒休息。游戏不能解除守护。
+
+![全屏单词射击：场内中文目标、真实飞行子弹、命中进度、输入框与难度入口](docs/screenshots/10-game.png)
 
 ### 题库文件格式
 
@@ -174,7 +176,7 @@ npm run android:apk
 **已有最新包时手动覆盖更新**：不必为安装再次跑全量测试。平板允许该电脑的 USB 调试后，从项目根目录由你自行运行：
 
 ```bash
-"$HOME/Library/Android/sdk/platform-tools/adb" install -r artifacts/android/sprout-android-1.4-debug.apk
+"$HOME/Library/Android/sdk/platform-tools/adb" install -r artifacts/android/sprout-android-1.5-debug.apk
 ```
 
 `-r` 表示覆盖安装、通常保留数据。先由家长停止守护并备份，不卸载/清数据；多设备用 `-s <设备序列号>` 指定目标。若报签名不一致或降级，先核对包，不用卸载/强制降级绕过。更新后确认版本与配置，再恢复守护。本段只是用户手动步骤，不授权 AI 自动枚举、安装或设置设备。
@@ -250,13 +252,13 @@ No account, backend or API key is required at runtime. **The documentation is bi
 - Course metadata includes upper/lower book, lesson number and lesson title, editable alongside grade/subject/content. Filter, select across pages and bulk enable/disable/delete with PIN verification and count confirmation; deletion retains learning history.
 - English spelling and Word Runner offer replayable dictation with local system English voices only. No automatic answer filling, scoring, microphone, voice download or remote synthesis; missing voices degrade to text practice.
 - 254 grade-three foundation words/phrases produce 508 English-to-Chinese choice and Chinese-to-English spelling questions. Import/export vocabulary by unit; the exact textbook and full two-semester vocabulary coverage remain unverified.
-- Word Runner: correct spelling launches cartoon energy and clears space obstacles; wrong answers retry, real attempts are recorded, hints/pause are available, and ten correct words prompt a rest. The game does not bypass guarding.
+- Full-screen Word Runner: Chinese targets fall inside the game scene; correct English launches a real homing projectile, and collision—not submission—clears a target and scores. Spawn interval/fall speed are adjustable and stored locally, pause retains targets/projectiles/drafts, and ten hits prompt a rest. Wrong attempts are recorded; missed targets are not fabricated answers. No guarding bypass.
 - Configurable 1–120 minute intervals and 1–20 correct answers per round. Incorrect answers stay on the current question; no in-app skip or timeout bypass.
 - Separate practice mode, three question types, weighted question ordering, shuffled choice options and normalized answer comparison.
 - Local question editing, CSV/JSON import with validation, preview and deduplication, and question/record exports.
 - Parent-created six-digit PIN, salted PBKDF2-HMAC-SHA256 with 120,000 iterations, and a 30-second verification cooldown after five failures. No default PIN or cloud recovery.
 - Responsive desktop/tablet/phone layouts, learning statistics, a 3D learning island and full-screen universe quiz background, animation pause and reduced-motion/static fallbacks.
-- Android 1.4 adds course annotations and offline English dictation, retaining types, filtering, weighting, native guarding, keypad and diagnostics. Not system-level force-stop protection.
+- Android 1.5 includes the redesigned full-screen spelling shooter and persistent difficulty, retaining course management, offline dictation, native guarding and diagnostics. Not system-level force-stop protection.
 
 | Platform | Supported | Important limitation |
 | --- | --- | --- |
@@ -285,7 +287,7 @@ All screenshots are **real browser captures with isolated demonstration data**, 
 | 7. Parent exit | Select “家长停止守护” on Home or “家长退出” in the quiz. A correct PIN stops guarding; cancelling verification does not. | [Web parent verification](docs/screenshots/07-parent.png) |
 | 8. Review and back up | Open “学习足迹” and export records after PIN verification. Export the question library separately from “我的题库”. | [Learning records](docs/screenshots/08-records.png) |
 | 9. Use a narrow screen | The layout adapts and offers bottom navigation. This capture uses a 390 × 844 browser viewport. | [Mobile layout](docs/screenshots/09-mobile.png) |
-| 10. Play Word Runner | Enter “单词星际跑酷” from Home, spell the shown Chinese word, then launch energy. Correct answers clear obstacles; pause, hints and a ten-word rest prompt are available. | [Word game](docs/screenshots/10-game.png) |
+| 10. Play Word Runner | Read a falling Chinese target, enter its English and press Enter/“发射子弹”. Homing shots score on collision; “调整难度” controls 1–12s spawn interval and 1–8 fall speed. Pause, hints/dictation and ten-hit rest are available. | [Word game](docs/screenshots/10-game.png) |
 | 11. Edit course metadata | Change grade, subject, upper/lower book, lesson/title and content; save preserves the ID/history. The pictured lesson is illustrative fixture data, not a verified textbook mapping. | [Course editor](docs/screenshots/11-course-editor.png) |
 
 The parent-verification image shows the **web dialog**. Android 1.2 instead uses a separate native Activity with an inline numeric keypad; that native screen is not pictured. The records capture contains one attempt genuinely made during the demonstration.

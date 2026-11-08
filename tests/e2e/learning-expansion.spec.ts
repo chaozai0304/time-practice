@@ -34,10 +34,10 @@ test('词表导入生成英选中/中写英，游戏正确才释放能量并持�
   await page.getByLabel('搜索题目').fill('测试火箭'); await expect(page.locator('.question-list-item')).toHaveCount(1)
   await page.getByLabel('搜索题目').fill('rocket'); await expect(page.locator('.question-list-item')).toHaveCount(1)
   const nav = info.project.name === 'phone' ? page.locator('.mobile-nav') : page.locator('aside'); await nav.getByRole('button', { name: '成长首页' }).click(); await page.getByRole('button', { name: '进入单词星际跑酷' }).click()
-  await expect(page.locator('.runner-question h3')).toHaveText('测试火箭'); await page.getByLabel('游戏英文答案').fill('wrong'); await page.getByRole('button', { name: '发射单词能量' }).click(); await expect(page.getByTestId('game-score')).toHaveText('0'); await expect(page.locator('.runner-pulse')).toHaveCount(0)
+  await expect(page.getByTestId('game-chinese')).toHaveText('测试火箭'); await page.getByLabel('游戏英文答案').fill('wrong'); await page.getByRole('button', { name: '发射子弹' }).click(); await expect(page.getByTestId('game-score')).toHaveText('0'); await expect(page.getByTestId('game-bullet')).toHaveCount(0)
   await page.getByRole('button', { name: '暂停游戏' }).click(); await expect(page.getByLabel('游戏英文答案')).toBeDisabled(); await page.getByRole('button', { name: '继续游戏' }).click(); await page.getByRole('button', { name: '拼写提示' }).click(); await expect(page.locator('.runner-question')).toContainText('首字母：r')
-  await page.getByLabel('游戏英文答案').fill(' ROCKET '); await page.getByRole('button', { name: '发射单词能量' }).click(); await expect(page.getByTestId('game-score')).toHaveText('1'); await expect(page.locator('.runner-pulse')).toHaveCount(1)
-  for (let i = 1; i < 10; i++) { await page.getByLabel('游戏英文答案').fill('rocket'); await page.getByRole('button', { name: '发射单词能量' }).click(); await expect(page.getByTestId('game-score')).toHaveText(String(i + 1)) }
+  await page.getByLabel('游戏英文答案').fill(' ROCKET '); await page.getByRole('button', { name: '发射子弹' }).click(); await expect(page.getByTestId('game-bullet')).toHaveCount(1); await expect(page.getByTestId('game-score')).toHaveText('1')
+  for (let i = 1; i < 10; i++) { await page.getByLabel('游戏英文答案').fill('rocket'); await page.getByRole('button', { name: '发射子弹' }).click(); await expect(page.getByTestId('game-score')).toHaveText(String(i + 1)) }
   await expect(page.getByRole('heading', { name: /探索完成/ })).toBeVisible(); await page.screenshot({ path: `test-results/game-${info.project.name}.png`, fullPage: true }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.reload(); await nav.getByRole('button', { name: '学习足迹' }).click(); await expect(page.locator('.record-item')).toHaveCount(11); await expect(page.locator('.record-result.retry')).toHaveCount(1)
 })

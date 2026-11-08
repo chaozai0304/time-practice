@@ -79,7 +79,9 @@ export interface AppData {
   authFailures: number
   authBlockedUntil: number
   contentRevision?: number
+  gameSettings?: GameSettings
 }
+export interface GameSettings { spawnIntervalSeconds: number; fallSpeed: number }
 export const idleSession: Session = {
   active: false, locked: false, deadline: 0, correct: 0, index: 0, queue: [], practice: false,
 }
