@@ -42,9 +42,10 @@ assert.equal(lockfile.packages[''].license, 'MIT')
 const license = readFileSync(path.join(root, 'LICENSE'), 'utf8')
 assert.ok(license.startsWith('MIT License\n') && license.includes('Permission is hereby granted') && license.includes('THE SOFTWARE IS PROVIDED "AS IS"'), 'Keep the MIT grant and disclaimer intact.')
 const images = readdirSync(path.join(root, 'docs/screenshots')).filter(name => name.endsWith('.png')).sort()
-assert.equal(images.length, 11)
+assert.equal(images.length, 18)
 assert.ok(images.includes('10-game.png'), 'Keep the actual word-game screenshot.')
 assert.ok(images.includes('11-course-editor.png'), 'Keep the full course metadata editor screenshot.')
+for (const name of ['12-game-hub.png','13-escort.png','14-runner.png','15-tower.png','16-pickup-question.png','17-tablet-controls.png','18-tablet-portrait.png']) assert.ok(images.includes(name), `Keep the real game capture: ${name}`)
 for (const name of images) {
   const bytes = readFileSync(path.join(root, 'docs/screenshots', name))
   assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a')
@@ -63,4 +64,4 @@ for (const name of files) {
 }
 assert.deepEqual(forbidden, [], 'Publication contains a cache, signing, environment or device artifact.')
 assert.deepEqual(suspected, [], 'Review potential credentials before publishing (file names only).')
-console.log(`Verified bilingual README, canonical rules, learning links, MIT metadata, 11 screenshots and ${files.size} publishable files; no blocked paths or common credential patterns.`)
+console.log(`Verified bilingual README, canonical rules, learning links, MIT metadata, 18 screenshots and ${files.size} publishable files; no blocked paths or common credential patterns.`)

@@ -39,12 +39,13 @@ A local-first learning companion: parents manage questions and learning interval
 - **英语双向词汇**：三年级 254 个分类基础词/短语，生成 508 道“看英语选中文”“看中文写英语”题；可导入实际教材词表并导出基础词库。教材版本未确认，**不能声明涵盖北京某版上下册全部单词**。
 - **英语听写**：拼写题和单词游戏可点“听英文（听写）/重听”，使用系统本地英语语音；不显示或自动填答案、不计分。缺少本地语音时明确提示，不自动下载、联网合成或申请麦克风。
 - **全屏单词射击**：中文目标直接出现在星空场景中并下落；输入对应英文、按 Enter/点“发射子弹”，正确才发射真实追踪弹，命中才消除计分。可调中文出现间隔和下落速度，支持暂停/听写/提示，10 次命中后休息；错误作答记入学习足迹，漏词不伪造作答记录。
+- **三款独立知识街机**：雷霆空战为纵向卷轴飞机大战，自动连发、编队/敌方弹幕、爆炸、炸弹及关底Boss；弹珠破阵为挡板接球、反弹消砖、多球与穿透；秘境跳跃为横向平台、重力落地、沟壑、二段跳、滑翔与磁吸。各8关、6级独立能力。实际拾取「?」补给才暂停出当前年级/所选科目/启用题，正确升级、错误不领奖。原创Canvas 2D街机画面，不再以同一个3D几何球场景换名字。
 - **学习规则**：间隔 1–120 分钟，每轮累计答对 1–20 道；答错留在当前题，应用内没有跳过或自动超时放行按钮。
 - **独立练习**：先体验答题，不启动跨应用守护。支持选择题、填空题、判断题，加权题序与随机选择题选项；判断题固定正确/错误，规范化全角数字、空格与英文大小写。
 - **家长验证**：自行设置 6 位密码，无默认密码；随机盐和 PBKDF2-HMAC-SHA256（120,000 次），不保存明文。连续输错 5 次暂停验证 30 秒。
 - **成长足迹**：真实答题统计、连续学习天数、每周图表和最近 10,000 次答题记录；支持导出。
 - **自适应视觉**：软 3D 学习小岛、全屏宇宙答题背景、透明题目层、清晰按钮和过关纸屑。Remotion + Three.js 动画支持暂停、减少动态效果、后台停播及静态降级。
-- **Android 1.5**：包含重做的全屏中文射击与难度保存，保留课程标注、离线听写、三题型、计时守护、家长数字键盘及诊断。不是系统级防退出版本。
+- **Android 1.8**：在三套独立街机基础上优化平板触控，左手方向盘/右手大动作键、相对拖动战机、挡板大滑条、多指与横竖屏适配；保留当前范围题和原守护，不是系统级防退出版本。
 
 ### 平台支持与限制
 
@@ -99,7 +100,7 @@ npm run dev
 
 模板：[三题型 CSV](examples/questions.csv) · [JSON](examples/questions.json) · [英语词表 CSV](examples/vocabulary.csv) · [词表 JSON](examples/vocabulary.json)。题型、学段、开关和教材校对详见 [学习内容说明](docs/LEARNING_CONTENT.md)。导出文件包含正确答案，请由家长保管。
 
-使用年级/科目/题型/单元/册次/课次/启用状态筛选；关键词也可检索课题与来源。可操作全部筛选结果，或勾选任意题批量启停/删除，分页每页 50 道。“全选筛选结果”包含其他页；批量删除需验证密码、核对清单并输入数量确认，取消不删除。编辑可改变内容和完整课程归属，保留原 ID/历史。游戏使用当前年级启用英语拼写题；练习/守护还受所选科目限制。
+使用年级/科目/题型/单元/册次/课次/启用状态筛选；关键词也可检索课题与来源。可操作全部筛选结果，或勾选任意题批量启停/删除，分页每页 50 道。“全选筛选结果”包含其他页；批量删除需验证密码、核对清单并输入数量确认，取消不删除。编辑可改变内容和完整课程归属，保留原 ID/历史。新知识游戏与练习/守护使用当前年级、所选科目中的启用题；独立单词射击仍是当前年级的启用英语拼写专项。题库列表筛选只是管理视图，不会单独改变学习范围。
 
 <img src="docs/screenshots/11-course-editor.png" width="560" alt="真实网页课程编辑器：年级、科目、上下册、第几课、课题、内容及保存按钮" />
 
@@ -143,6 +144,26 @@ npm run dev
 
 ![全屏单词射击：场内中文目标、真实飞行子弹、命中进度、输入框与难度入口](docs/screenshots/10-game.png)
 
+#### 三款独立知识街机
+
+首页下方“知识游戏大厅”显示当前年级、所选科目和启用题数，点击某款游戏 → 选择1–8关 → 移动战机/接球/跳跃 → 实际接触「?」补给后自动暂停出题 → 选择或填写答案 → “确认答案并领取升级” → 正确后恢复游戏并升级该玩法能力。答错留在当前题，不升级；没有当前范围题目时禁入，不借用范围外题。
+
+![知识游戏大厅：三种玩法和当前学习范围](docs/screenshots/12-game-hub.png)
+
+| 游戏 | 操作与目标 | 实际战斗画面 |
+| --- | --- | --- |
+| 雷霆空战 | 拖动战机/方向键/WASD移动，自动连续发射直线弹；空格/炸弹键清弹幕，必须击败Boss才能过关 | [飞机大战](docs/screenshots/13-escort.png) |
+| 弹珠破阵 | 左右拖动/方向键移动挡板，点“发球”或空格开始；球碰砖消除计分，清空砖阵过关 | [弹珠球台](docs/screenshots/14-runner.png) |
+| 秘境跳跃 | 左右/A、D移动，上/W/空格或跳跃键起跳；解锁后二次按跳为二段跳、按住可滑翔，抵达旗帜过关 | [横版平台](docs/screenshots/15-tower.png) |
+
+**平板操作（1.8）**：空战左手十字方向盘可滑向斜向，也能在战区任意位置按住相对拖动，不会一按就瞬移；自动射击，右手只点清屏炸弹。平台左手长按左右、右手跳跃，两指可同时按，松开其中一指不影响另一指。弹珠优先用底部大滑条接球，不遮挡弹珠；也可长按方向键。短点用于微调，长按连续移动；取消触摸、旋转、暂停或答题会清空输入，恢复后不会自己跑。
+
+[横屏方向盘布局](docs/screenshots/17-tablet-controls.png) · [竖屏左右手分区](docs/screenshots/18-tablet-portrait.png)。图片为电脑隔离浏览器视口，非实际平板截图；真实设备手感仍需家长体验。
+
+<img src="docs/screenshots/16-pickup-question.png" width="560" alt="真实道具题：游戏暂停，答对才能领取当前玩法能力升级" />
+
+空战升级双发/三向/五向机炮、重型弹和僚机；弹珠升级宽挡板、多球、穿透；平台升级二段跳、滑翔、磁吸和步伐。正确回答加100分、恢复1生命（上限5）；满级不再加级但仍给补给。过关保留能力进入下一关，选关/重试从基础能力开始。退出不保存本局战斗进度，但真实作答保留。暂停、后台和守护接管冻结游戏；游戏不解除守护。素材原创、本地绘制，无远程游戏资源；画面为Canvas 2D，不宣称3D。以上是电脑网页证据，不代表目标设备/后台已验收。
+
 ### 题库文件格式
 
 | 字段 | 要求 |
@@ -176,7 +197,7 @@ npm run android:apk
 **已有最新包时手动覆盖更新**：不必为安装再次跑全量测试。平板允许该电脑的 USB 调试后，从项目根目录由你自行运行：
 
 ```bash
-"$HOME/Library/Android/sdk/platform-tools/adb" install -r artifacts/android/sprout-android-1.5-debug.apk
+"$HOME/Library/Android/sdk/platform-tools/adb" install -r artifacts/android/sprout-android-1.8-debug.apk
 ```
 
 `-r` 表示覆盖安装、通常保留数据。先由家长停止守护并备份，不卸载/清数据；多设备用 `-s <设备序列号>` 指定目标。若报签名不一致或降级，先核对包，不用卸载/强制降级绕过。更新后确认版本与配置，再恢复守护。本段只是用户手动步骤，不授权 AI 自动枚举、安装或设置设备。
@@ -253,12 +274,13 @@ No account, backend or API key is required at runtime. **The documentation is bi
 - English spelling and Word Runner offer replayable dictation with local system English voices only. No automatic answer filling, scoring, microphone, voice download or remote synthesis; missing voices degrade to text practice.
 - 254 grade-three foundation words/phrases produce 508 English-to-Chinese choice and Chinese-to-English spelling questions. Import/export vocabulary by unit; the exact textbook and full two-semester vocabulary coverage remain unverified.
 - Full-screen Word Runner: Chinese targets fall inside the game scene; correct English launches a real homing projectile, and collision—not submission—clears a target and scores. Spawn interval/fall speed are adjustable and stored locally, pause retains targets/projectiles/drafts, and ten hits prompt a rest. Wrong attempts are recorded; missed targets are not fabricated answers. No guarding bypass.
+- Three independent original-vector Canvas 2D arcades, each with eight stages: Thunder Flight automatically fires linear salvos through formations, hostile bullets and a mandatory boss; Brick Breaker uses paddle/ball reflection and brick clearance; Forest Jump uses gravity, platforms, gaps and an endpoint. Their separate upgrades include spread/wingmen, wide paddles/multiball/piercing, and double jump/gliding/magnetism. Real supply contact pauses for a current-grade/selected-subject/enabled question. Wrong answers award nothing; correct answers upgrade that game's actual mechanics. Not the former same-scene 3D variants.
 - Configurable 1–120 minute intervals and 1–20 correct answers per round. Incorrect answers stay on the current question; no in-app skip or timeout bypass.
 - Separate practice mode, three question types, weighted question ordering, shuffled choice options and normalized answer comparison.
 - Local question editing, CSV/JSON import with validation, preview and deduplication, and question/record exports.
 - Parent-created six-digit PIN, salted PBKDF2-HMAC-SHA256 with 120,000 iterations, and a 30-second verification cooldown after five failures. No default PIN or cloud recovery.
 - Responsive desktop/tablet/phone layouts, learning statistics, a 3D learning island and full-screen universe quiz background, animation pause and reduced-motion/static fallbacks.
-- Android 1.5 includes the redesigned full-screen spelling shooter and persistent difficulty, retaining course management, offline dictation, native guarding and diagnostics. Not system-level force-stop protection.
+- Android 1.8 adds thumb-friendly cross/horizontal pads, large separate action buttons, relative aircraft dragging, a dedicated paddle slider, independent fingers and landscape/portrait layouts to the three arcades. Existing learning and guarding remain unchanged; not system-level force-stop protection.
 
 | Platform | Supported | Important limitation |
 | --- | --- | --- |
@@ -289,6 +311,12 @@ All screenshots are **real browser captures with isolated demonstration data**, 
 | 9. Use a narrow screen | The layout adapts and offers bottom navigation. This capture uses a 390 × 844 browser viewport. | [Mobile layout](docs/screenshots/09-mobile.png) |
 | 10. Play Word Runner | Read a falling Chinese target, enter its English and press Enter/“发射子弹”. Homing shots score on collision; “调整难度” controls 1–12s spawn interval and 1–8 fall speed. Pause, hints/dictation and ten-hit rest are available. | [Word game](docs/screenshots/10-game.png) |
 | 11. Edit course metadata | Change grade, subject, upper/lower book, lesson/title and content; save preserves the ID/history. The pictured lesson is illustrative fixture data, not a verified textbook mapping. | [Course editor](docs/screenshots/11-course-editor.png) |
+| 12. Pick a knowledge game | Home → “知识游戏大厅” → choose a game and one of eight stages. The hub shows the current learning scope; an empty scope disables entry. | [Game hub](docs/screenshots/12-game-hub.png) |
+| 13. Collect, answer, upgrade | Fly/catch/jump and touch a “?” supply, then answer the paused quiz. Correct answers upgrade that game's ability; wrong answers award nothing. | [Plane shooter](docs/screenshots/13-escort.png) / [Brick breaker](docs/screenshots/14-runner.png) / [Platformer](docs/screenshots/15-tower.png) / [Pickup quiz](docs/screenshots/16-pickup-question.png) |
+
+Thunder Flight uses drag/arrows/WASD movement with automatic continuous fire; Space/the bomb button clears hostile shots with limited bombs. Brick Breaker uses horizontal dragging/arrows and a serve action; actual ball/brick contact scores. Forest Jump uses horizontal movement and Space/W/up/jump; release and press again for an unlocked double jump, hold for unlocked gliding. Beat the boss, clear the bricks, or reach the flag respectively. Stage completion retains upgrades; selecting/retrying resets battle abilities. Quitting discards battle progress, not real attempts. Backgrounding, pausing and guarding freeze gameplay. Art is original local Canvas 2D, not a 3D claim. Library view filters are management filters, not an extra learning scope.
+
+**Tablet controls (1.8):** use the left cross-pad for eight-way flight, or drag from anywhere without teleporting the aircraft. Platforming separates left movement and right jump, with independent simultaneous fingers. The breaker has a wide dedicated paddle slider. Brief taps nudge, holds move continuously, and cancellation, resize, pause or quizzes clear held input. See [landscape](docs/screenshots/17-tablet-controls.png) and [portrait](docs/screenshots/18-tablet-portrait.png) isolated computer-browser captures; actual tablet comfort is not claimed as validated.
 
 The parent-verification image shows the **web dialog**. Android 1.2 instead uses a separate native Activity with an inline numeric keypad; that native screen is not pictured. The records capture contains one attempt genuinely made during the demonstration.
 

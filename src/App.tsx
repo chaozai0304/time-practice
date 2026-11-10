@@ -7,6 +7,9 @@ import { loadData, saveData } from './lib/storage'
 import { createCredential, verifyPin } from './lib/auth'
 import { answerSession, eligibleQuestions, prioritizeQuestions, startSession, tickSession } from './lib/session'
 import { WordRunner } from './components/WordRunner'
+import { AdventureGame } from './components/AdventureGame'
+import { GameHub } from './components/GameHub'
+import type { AdventureMode } from './lib/adventure'
 import { exportFile, isAndroid, isNative, LearningGuard } from './lib/native'
 import type { GuardStatus } from './lib/native'
 import { PinDialog } from './components/PinDialog'
@@ -18,7 +21,7 @@ import { Help } from './components/Help'
 import { Celebration } from './components/Celebration'
 import { stopEnglishSpeech } from './lib/speech'
 
-type Page = 'home' | 'library' | 'records' | 'settings' | 'game'
+type Page = 'home' | 'library' | 'records' | 'settings' | 'game' | 'adventure'
 const navigation = [{ id: 'home', label: '成长首页', icon: House }, { id: 'library', label: '我的题库', icon: BookOpen }, { id: 'records', label: '学习足迹', icon: ChartNoAxesColumn }, { id: 'settings', label: '家长设置', icon: Settings2 }] as const
 function collectAttempts(existing: Attempt[], incoming: Attempt[]) {
   const ids = new Set(existing.map(a => a.id)), added = incoming.filter(a => !ids.has(a.id))
@@ -27,6 +30,7 @@ function collectAttempts(existing: Attempt[], incoming: Attempt[]) {
 export default function App() {
   const [data, setData] = useState<AppData | null>(null), [loadError, setLoadError] = useState('')
   const [page, setPage] = useState<Page>('home'), [now, setNow] = useState(() => Date.now())
+  const [adventure, setAdventure] = useState<AdventureMode>('flight')
   const [guard, setGuard] = useState<GuardStatus | null>(null), [busy, setBusy] = useState(false)
   const [toast, setToast] = useState(''), [help, setHelp] = useState(false), [changePassword, setChangePassword] = useState(false)
   const [parent, setParent] = useState<{ reason: string; action: (pin: string) => void | Promise<void> } | null>(null)
@@ -116,17 +120,17 @@ export default function App() {
     await exportFile('学伴守护诊断.json', JSON.stringify({ exportedAt: Date.now(), device, appVersion, active, locked, running, error, overlayGranted, overlayVisible, overlayWidth, overlayHeight, parentVisible, quizActivityVisible, mainForeground, displayState, lastQuizRequestAt, lastQuizActivityAt, lastQuizActivitySource, lastHeartbeatAt, lastOverlayAt, batteryUnrestricted, notificationsAllowed, diagnostics }, null, 2))
   })
   const q = data.questions.find(q => q.id === data.session.queue[data.session.index % data.session.queue.length])
-  const pageTitle = page === 'game' ? '单词星际跑酷' : navigation.find(n => n.id === page)!.label
+  const pageTitle = page === 'game' ? '单词星际跑酷' : page === 'adventure' ? '知识游戏大厅' : navigation.find(n => n.id === page)!.label
   return <>
-    <div className="app-shell" inert={page === 'game' || data.session.locked || !!parent || !data.credential || help || changePassword ? true : undefined}>
+    <div className="app-shell" inert={page === 'game' || page === 'adventure' || data.session.locked || !!parent || !data.credential || help || changePassword ? true : undefined}>
       <aside className="sidebar"><a className="brand" href="#" onClick={e => { e.preventDefault(); setPage('home') }}><span className="brand-mark"><Sprout size={25} /></span><span>学伴时光<small>一点学习，一点成长</small></span></a>
         <div className="nav-label">成长空间</div><nav>{navigation.map(item => <button className={`nav-item ${page === item.id ? 'active' : ''}`} aria-label={item.label} aria-current={page === item.id ? 'page' : undefined} key={item.id} onClick={() => navigate(item.id)}><item.icon size={22} /><span>{item.label}</span>{page === item.id && <span className="nav-dot" />}</button>)}</nav>
-        <div className="sidebar-bottom"><div className="offline-card"><ShieldCheck size={22} /><strong>只属于你们的小天地</strong><p>所有题目与记录保存在本机<br />无需账号，也无需联网</p><span><span className="status-dot" />本地模式</span></div><button className="sidebar-help" onClick={() => setHelp(true)}><CircleHelp size={17} />使用指南<ChevronRight size={16} /></button><p className="version">学伴时光 {isAndroid ? `安卓 v${guard?.appVersion || '1.5'}` : 'v1.0'} · 陪伴每一步</p></div>
+        <div className="sidebar-bottom"><div className="offline-card"><ShieldCheck size={22} /><strong>只属于你们的小天地</strong><p>所有题目与记录保存在本机<br />无需账号，也无需联网</p><span><span className="status-dot" />本地模式</span></div><button className="sidebar-help" onClick={() => setHelp(true)}><CircleHelp size={17} />使用指南<ChevronRight size={16} /></button><p className="version">学伴时光 {isAndroid ? `安卓 v${guard?.appVersion || '1.8'}` : 'v1.0'} · 陪伴每一步</p></div>
       </aside>
       <div className="workspace"><header className="topbar"><span className="breadcrumb">成长空间 <ChevronRight size={14} /><strong>{pageTitle}</strong></span><span className="mobile-brand"><Sprout size={22} />学伴时光</span><div className="topbar-actions"><span className="local-pill"><ShieldCheck size={14} />本地安全存储</span><button className="icon-button" aria-label="使用帮助" onClick={() => setHelp(true)}><CircleHelp size={20} /></button><button className="avatar" aria-label="进入家长设置" onClick={() => navigate('settings')}>家</button></div></header>
         <main className="main-content"><div className="page-heading"><div><div className="eyebrow">{page === 'home' ? '每一次小小进步，都值得被看见' : page === 'library' ? '把适合孩子的题目，装进口袋' : page === 'records' ? '每一步成长，都留下足迹' : '温柔的陪伴，也需要清晰的规则'}</div><h1>{page === 'home' ? `你好，${data.settings.name}` : pageTitle}{page === 'home' && <span className="greeting-leaf">✦</span>}</h1><p>{page === 'home' ? '让玩耍有节奏，让学习悄悄发生。' : page === 'library' ? '支持手动添加与批量导入，离线也能随时管理。' : page === 'records' ? '用真实记录，了解孩子的学习节奏。' : '设置一次，让学伴按你们的节奏运行。'}</p></div><div className="date-label"><Clock3 size={16} />{new Date(now).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })}</div></div>
           {page === 'home' && <Dashboard data={data} now={now} active={active} deadline={nativeActive ? guard.deadline : data.session.deadline} eligibleCount={eligible.length} busy={busy} guardReady={!isAndroid || !!guard} guardError={guard?.error || (nativeActive && !guard.running ? '请重新启动并检查后台权限' : '')} onStart={() => void start()} onPractice={() => void start(true)} onStop={() => protect('停止守护后，孩子将不再被定时要求答题。', stop)} onSettings={() => navigate('settings')} onLibrary={() => navigate('library')} onRecords={() => setPage('records')} />}
-          {page === 'home' && <section className="panel"><span className="eyebrow">让拼写变成一次星际探索</span><h3>单词星际跑酷</h3><p className="small muted">全屏中文目标下落，输入正确英文发射追踪子弹。可调整出现频率和速度，真实作答记入学习足迹。</p><button className="button primary" disabled={active || busy} onClick={() => setPage('game')}>进入单词星际跑酷</button></section>}
+          {page === 'home' && <GameHub data={data} active={active || busy} onAdventure={mode => { setAdventure(mode); setPage('adventure') }} onWords={() => setPage('game')} />}
           {page === 'library' && <Library questions={data.questions} grade={data.settings.grade} attempts={data.attempts} active={active} protect={protect} notify={setToast} onQuestions={questions => setData(d => d && ({ ...d, questions }))} />}
           {page === 'records' && <Records attempts={data.attempts} active={active} onPractice={() => void start(true)} onExport={() => protect('答题记录包含孩子的学习信息，请确认导出。', () => exportFile('学伴学习记录.json', JSON.stringify(data.attempts, null, 2)))} />}
           {page === 'settings' && <SettingsPanel settings={data.settings} active={active} granted={!!guard?.overlayGranted} guard={guard} onBackground={backgroundSettings} onRecover={recoverGuard} onDiagnostics={exportDiagnostics} onPermission={() => protect('授权浮层后可以在其他应用之上弹出题目。系统设置和卸载仍可能绕过，不能视作系统锁屏。', async () => { await LearningGuard.requestOverlay() })} onPassword={() => protect('验证现有密码后，可设置新的 6 位家长密码。', () => setChangePassword(true))} onSave={saveSettings} />}
@@ -134,6 +138,7 @@ export default function App() {
       </div><nav className="mobile-nav">{navigation.map(n => <button key={n.id} aria-label={n.label} aria-current={page === n.id ? 'page' : undefined} className={page === n.id ? 'active' : ''} onClick={() => navigate(n.id)}><n.icon size={23} /><span>{n.label}</span></button>)}</nav>
     </div>
     {page === 'game' && <WordRunner key={data.settings.grade} data={data} suspended={active || !!parent || help || changePassword} onExit={() => setPage('home')} onSettings={settings => setData(d => d && ({ ...d, gameSettings: settings }))} onAttempt={attempt => setData(d => d && ({ ...d, attempts: [...d.attempts, attempt].slice(-10_000) }))} />}
+    {page === 'adventure' && <AdventureGame key={adventure} data={data} mode={adventure} suspended={active || !!parent || help || changePassword} onExit={() => setPage('home')} onAttempt={attempt => setData(d => d && ({ ...d, attempts: [...d.attempts, attempt].slice(-10_000) }))} />}
     {data.session.locked && q && <div data-quiz-layer inert={parent ? true : undefined}><Quiz question={q} correct={data.session.correct} target={data.settings.requiredCorrect} practice={data.session.practice} onParent={() => protect('验证密码后将结束本轮答题，并停止定时守护。', stop)} onAnswer={answer => {
       const result = answerSession(data.session, q, answer, data.settings, Date.now(), data.questions, data.attempts)
       setData({ ...data, session: result.session, attempts: [...data.attempts, result.attempt].slice(-10_000) })

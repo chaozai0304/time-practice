@@ -135,11 +135,45 @@ try {
   await page.clock.runFor(1500)
   await expect(page.getByTestId('game-score')).toHaveText('1')
   await page.getByRole('button', { name: '返回首页', exact: true }).click()
+  // The new games use the unchanged current grade/subjects, never a hidden pool.
+  await page.getByRole('heading', { name: '知识游戏大厅' }).scrollIntoViewIfNeeded()
+  await screenshot('12-game-hub.png', page.locator('.game-hub'))
+  for (const [name, image] of [['雷霆空战','13-escort.png'],['弹珠破阵','14-runner.png'],['秘境跳跃','15-tower.png']]) {
+    await page.getByRole('button', { name: `进入${name}`, exact:true }).click()
+    await page.clock.runFor(200)
+    await page.locator('.battle-level-grid button').first().click()
+    await expect(page.locator('.adventure-scene')).toHaveAttribute('data-renderer','arcade-2d')
+    if(name==='雷霆空战'){await page.clock.runFor(2400);await expect(page.locator('.adventure-game')).not.toHaveAttribute('data-projectiles','0')}
+    else if(name==='弹珠破阵'){await page.getByRole('button',{name:'发球',exact:true}).click();await page.clock.runFor(1800)}
+    else {await page.getByRole('button',{name:'跳跃 / 二段跳'}).click();await page.clock.runFor(220)}
+    await screenshot(image, page.locator('.adventure-game'))
+    if(name==='秘境跳跃'){const button=await page.getByRole('button',{name:'向右移动'}).boundingBox();await page.mouse.move(button.x+button.width/2,button.y+button.height/2);await page.mouse.down()}
+    for(let elapsed=0;elapsed<7000&&await page.locator('.adventure-game').getAttribute('data-phase')==='playing';elapsed+=200)await page.clock.runFor(200)
+    await page.mouse.up()
+    const pickup = page.getByRole('dialog',{name:'知识道具 · 答对升级能力',exact:true})
+    await expect(pickup).toBeVisible()
+    if(name==='雷霆空战') await screenshot('16-pickup-question.png',pickup)
+    // Read the authoritative fixture by its visible prompt, then genuinely answer.
+    const prompt=await pickup.locator('h3').innerText()
+    const answer=await page.evaluate(prompt=>JSON.parse(localStorage.getItem('CapacitorStorage.sprout.data.v1')).questions.find(q=>q.prompt===prompt&&q.enabled!==false&&q.grade===3&&q.subject==='数学').answer,prompt)
+    const text=pickup.getByLabel('道具题答案')
+    if(await text.count()) await text.fill(answer); else await pickup.getByRole('button',{name:answer,exact:true}).click()
+    await pickup.getByRole('button',{name:'确认答案并领取升级'}).click()
+    await expect(page.getByTestId('battle-weapon')).toHaveText('2')
+    await page.getByRole('button',{name:'返回游戏大厅',exact:true}).click()
+  }
+  await page.setViewportSize({ width:1024,height:768 })
+  await page.getByRole('button',{name:'进入雷霆空战',exact:true}).click();await page.clock.runFor(100);await page.locator('.battle-level-grid button').first().click();await page.clock.runFor(1500)
+  await expect(page.getByRole('button',{name:'向上移动',exact:true})).toBeInViewport();await expect(page.getByRole('button',{name:'向下移动',exact:true})).toBeInViewport()
+  await screenshot('17-tablet-controls.png',page.locator('.adventure-game'));await page.getByRole('button',{name:'返回游戏大厅',exact:true}).click()
+  await page.setViewportSize({ width:768,height:1024 })
+  await page.getByRole('button',{name:'进入秘境跳跃',exact:true}).click();await page.locator('.battle-level-grid button').first().click();await page.clock.runFor(150);await page.getByRole('button',{name:'跳跃 / 二段跳'}).click();await page.clock.runFor(180)
+  await screenshot('18-tablet-portrait.png',page.locator('.adventure-game'));await page.getByRole('button',{name:'返回游戏大厅',exact:true}).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await page.evaluate(() => window.scrollTo(0, 0))
   await screenshot('09-mobile.png')
   if (failures.length || external.length) throw new Error(JSON.stringify({ failures, external }))
-  console.log(`Verified 11 real browser screenshots in ${output}; no external requests or page errors.`)
+  console.log(`Verified 18 real browser screenshots in ${output}; no external requests or page errors.`)
   await context.close()
 } finally {
   await browser?.close()

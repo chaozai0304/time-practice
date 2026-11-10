@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultSettings, idleSession, validateSettings } from '../../src/lib/model'
+import { defaultSettings, getQuestionType, idleSession, validateSettings } from '../../src/lib/model'
 import { answerSession, eligibleQuestions, formatCountdown, normalizeAnswer, startSession, tickSession } from '../../src/lib/session'
 import { seedQuestions } from '../../src/lib/questions'
 const questions = seedQuestions(), settings = { ...defaultSettings, requiredCorrect: 2 }
@@ -35,7 +35,8 @@ describe('守护状态机', () => {
   it('无限次答错也不能放行', () => {
     let s = startSession(questions, settings, now, true)
     const q = questions.find(q => q.id === s.queue[0])!
-    for (let i = 0; i < 100; i++) s = answerSession(s, q, '错', settings, now).session
+    const wrong = getQuestionType(q) === 'boolean' ? q.answer === '正确' ? '错误' : '正确' : '__测试错误答案__'
+    for (let i = 0; i < 100; i++) { const result = answerSession(s, q, wrong, settings, now); expect(result.attempt.correct).toBe(false); s = result.session }
     expect(s.locked).toBe(true); expect(s.correct).toBe(0)
   })
   it('达到过关题数才解锁，并从完成时间重新计时', () => {

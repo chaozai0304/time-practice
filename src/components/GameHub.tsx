@@ -1,0 +1,19 @@
+import type { AppData } from '../lib/model'
+import { gradeLabel } from '../lib/model'
+import { adventureModes, adventurePool } from '../lib/adventure'
+import type { AdventureMode } from '../lib/adventure'
+import { ArrowRight, BookOpen, Sparkles } from '../ui/icons'
+import '../ui/adventure.css'
+
+export function GameHub({ data, active, onAdventure, onWords }: { data: AppData; active: boolean; onAdventure: (mode: AdventureMode) => void; onWords: () => void }) {
+  const count = adventurePool(data.questions,data.settings).length
+  return <section className="game-hub panel" aria-label="知识游戏大厅"><div className="section-heading"><div><span className="eyebrow"><Sparkles size={16} />玩得精彩，学得扎实</span><h2>知识游戏大厅</h2><p>{gradeLabel(data.settings.grade)} · {data.settings.subjects.join(' / ')} · 当前范围 {count} 道启用题</p></div><span className="tag">拾取道具 → 答题 → 能力升级</span></div>
+    <div className="game-hub-grid">{Object.entries(adventureModes).map(([id,game])=><article key={id} className={`hub-game hub-${id}`}><div className="hub-art" aria-hidden="true"><GameArtwork mode={id as AdventureMode}/><b>{game.genre}</b></div><div className="hub-game-copy"><span className="hub-subtitle">{game.subtitle}</span><h3>{game.name}</h3><p>{game.description}</p><small>8 关挑战 · 独立玩法与能力升级 · 当前学习范围</small><button className="button primary" disabled={active || !count} onClick={()=>onAdventure(id as AdventureMode)}>进入{game.name}<ArrowRight size={16}/></button></div></article>)}</div>
+    {!count && <p className="notice">当前学习范围没有启用题目，请先由家长管理题库或调整范围，游戏不会改用范围外题目。</p>}
+    {active && <p className="notice">守护/练习运行中不能进入游戏，请先由家长停止。</p>}
+    <div className="hub-words"><BookOpen size={22}/><div><h3>单词星际跑酷</h3><p>保留独立英语拼写射击：看场内中文，输入英文发射追踪弹。</p></div><button className="button secondary" disabled={active} onClick={onWords}>进入单词星际跑酷</button></div>
+  </section>
+}
+function GameArtwork({mode}:{mode:AdventureMode}) {
+  return <svg viewBox="0 0 320 184" fill="none"><defs><linearGradient id={`art-${mode}`} x1="100" y1="70" x2="210" y2="150" gradientUnits="userSpaceOnUse"><stop stopColor="#e5fbff"/><stop offset=".45" stopColor="#73d1eb"/><stop offset="1" stopColor="#22547b"/></linearGradient></defs>{mode==='flight'?<><path d="M38 0v184M105 0v184M215 0v184M282 0v184" stroke="#b6f4ff" strokeOpacity=".1" strokeDasharray="5 14"/>{[70,150,240].map((x,i)=><g key={x} transform={`translate(${x} ${48+i%2*13}) scale(.4) rotate(180)`}><path d="m0-45-14 40-48 24v18l47-11-7 25h44l-7-25 47 11V19L14-5Z" fill="#d78997" stroke="#ffd5c1"/></g>)}<g transform="translate(161 119)"><path d="m0-50-12 36-49 32v16l43-10-4 23h44l-4-23 43 10V18L12-14Z" fill={`url(#art-${mode})`} stroke="#bfeeff"/><path d="m0-36-6 15v20H6v-20Z" fill="#163c61" stroke="#a4f5ff"/><path d="M-30 30v15m60-15v15" stroke="#7fefff" strokeWidth="6"/><path d="M-3-63v-19M3-63v-19" stroke="#a9f6ff" strokeWidth="3"/></g></>:mode==='breaker'?<>{Array.from({length:24},(_,i)=><rect key={i} x={36+i%6*42} y={38+Math.floor(i/6)*19} width="35" height="12" rx="3" fill={['#84e0ef','#ba9eec','#e8a4c9','#f6d196'][Math.floor(i/6)]}/>)}<path d="m127 139 40-32 40 31" stroke="#d7f0ff" strokeOpacity=".35" strokeDasharray="3 4"/><circle cx="171" cy="112" r="6" fill="#f2ffff"/><rect x="119" y="153" width="84" height="9" rx="4.5" fill="#b7a3ef"/></>:<><circle cx="260" cy="43" r="20" fill="#ffecbc"/><path d="m0 123 67-51 49 34 70-67 65 64 69-25v106H0Z" fill="#427c7b"/><path d="M0 148h113v36H0m157-64h80v64h-80m109-31h54v35h-54" fill="#3a6860"/><path d="M0 148h113m44-28h80m29 29h54" stroke="#b6d790" strokeWidth="8"/><g fill="#f2c56f"><circle cx="70" cy="123" r="7"/><path d="M63 131h15v14H63Z"/></g><path d="M70 116h14" stroke="#83d3b1" strokeWidth="6"/><path d="m133 75 4 9 10 1-8 7 3 10-9-5-9 5 3-10-8-7 10-1Z" fill="#ffe3a3"/></>}</svg>
+}
